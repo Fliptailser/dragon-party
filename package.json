@@ -1,0 +1,20 @@
+{
+  "name": "dragon-party",
+  "description": "Multiplayer games featuring dragons!",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+	"start": "node index.js"  
+  },
+  "keywords": [
+	  "dragons"
+  ],
+  "author": "jose-salazar",
+  "dependencies": {
+    "express": "^4.13.4",
+    "socket.io": "^1.4.6"
+  },
+  "engines": {
+	  "node": "4.4.5"
+  }
+}

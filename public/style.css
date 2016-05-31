@@ -1,0 +1,56 @@
+body {
+	margin: 0;
+	background-image: url("assets/starsky.jpg");
+}
+		
+p {
+	font-size: 20px;
+}
+
+#game{
+	margin-top: 35px;
+	margin-bottom: 35px;
+	margin-left: auto;
+	margin-right: auto;
+	width: 1280px;
+}
+
+#header{
+	width: 500px;
+	height: 80px;
+	border: 1px solid #EEE;
+	background-color:rgba(255,255,255,0.9);
+	
+	font-size: 50px;
+	line-height: 80px;
+	font-family: 'Bubblegum Sans', cursive;
+	text-align: center;
+	
+	margin-top:35px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#about{
+	background-color:rgba(255,255,255,0.7);
+	margin-left: auto;
+	margin-right: auto;
+	width: 1280px;
+	padding: 20px;
+	margin-bottom: 80px;
+	font-family: 'Bubblegum Sans', cursive;
+}
+
+#login{
+	    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+    width: 350px;
+    text-align: center;
+    position: absolute;
+    top: 440px;
+    left: 0;
+    right: 0;
+    background-color: white;
+    font-family: 'Bubblegum Sans', cursive;
+}
