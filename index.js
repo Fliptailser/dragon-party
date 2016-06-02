@@ -24,10 +24,12 @@ var io = require('socket.io').listen(server);
 // io.set('log level',1);
 
 var Lobby = function() {
-	this.players = {};
+	this.entities = {};
+	this.IDcount = 0;
 	
-	this.addPlayer = function(socket, name, x, y){
-		this.players[socket] = new Player(name, x, y);
+	this.addDragon = function(socket, name, x, y){
+		this.entities[this.IDcount] = {entity: new Dragon(this.IDcount, name, x, y), controllers: [socket]};
+		this.IDcount += 1;
 	}
 	
 	/*
@@ -36,25 +38,27 @@ var Lobby = function() {
 			
 	*/
 	this.getStateForClient = function(socket){
-		var state = {};
-		var playersState = [];
-		for(var playerSocket in this.players){
-			var player = this.players[playerSocket];
-			playersState.push({
-				name: player.name,
-				x: player.x,
-				y: player.y,
-				dx: player.dx,
-				dy: player.dy
+		console.log("Getting state for " + socket);
+		var state = Object();
+		var entityState = [];
+		for(var entID in this.entities){
+			var entityData = this.entities[entID];
+			console.log("Checking if " + socket + " is in " + entityData.controllers + "...");
+			console.log(entityData.controllers.indexOf(socket) != -1);
+			entityState.push({
+				entity: entityData.entity,
+				controllable: entityData.controllers && entityData.controllers.indexOf(socket) != -1
 			});
 		}
 		
-		state["players"] = playersState;
+		state.entities = entityState;
 		return state;
 	}
 }
 
-var Player = function(name, x, y) {
+var Dragon = function(id, name, x, y) {
+	this.id = id;
+	this.entityType = "Dragon";
 	this.name = name;
 	this.x = x;
 	this.y = y;
@@ -77,6 +81,16 @@ io.on('connection', function (socket) {
 	socket.on('disconnect', function(){
 		console.log('client disconnected\t' + socket.id);
 		arrayRemove(playerPool, socket);
+		
+		for(var entID in testLobby.entities){
+			var ent = testLobby.entities[entID];
+			if(ent.controllers.indexOf(socket) != -1 && ent.entity.entityType == "Dragon"){
+				console.log("Deleting entity " + entID);
+				delete testLobby.entities[entID];
+				// TODO: multiple rooms
+				io.emit('removeEntity', entID);
+			}
+		}
 	});
 	
 	/*
@@ -89,7 +103,7 @@ io.on('connection', function (socket) {
 		
 		// for now, just put them in a room.
 		arrayRemove(playerPool, socket);
-		testLobby.addPlayer(socket, data["name"], 250, 150);
+		testLobby.addDragon(socket, data["name"], 250, 150);
 		
 		socket.emit("joinedTestLobby", testLobby.getStateForClient(socket));
 	});

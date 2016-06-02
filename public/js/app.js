@@ -19,11 +19,19 @@ jQuery(function($){
 	game.state.start('boot');
 	
 	socket.on("joinedTestLobby", enterTestLobby);
-
+	socket.on("removeEntity", removeEntity);
 }($));
 
 var lobbyState;
 function enterTestLobby(data){
 	game.state.start('testLobby');
 	lobbyState = data;
-}
+};
+
+function removeEntity(entID){
+	if(game.state.getCurrentState().key == 'testLobby'){
+		console.log("Deleting entity " + entID);
+		testLobbyState.entities[entID].sprite.destroy();
+		delete testLobbyState.entities[entID];
+	}
+};
