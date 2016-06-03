@@ -20,13 +20,20 @@ jQuery(function($){
 	
 	socket.on("joinedTestLobby", enterTestLobby);
 	socket.on("removeEntity", removeEntity);
+	socket.on("lobbyUpdate", lobbyUpdate);
 }($));
 
-var lobbyState;
+//var lobbyState;
 function enterTestLobby(data){
 	game.state.start('testLobby');
-	lobbyState = data;
+	//lobbyState = data;
 };
+
+function lobbyUpdate(data){
+	if(game.state.getCurrentState().key == 'testLobby' && testLobbyState.started){
+		testLobbyState.updateState(data);
+	}
+}
 
 function removeEntity(entID){
 	if(game.state.getCurrentState().key == 'testLobby'){

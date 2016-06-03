@@ -10,6 +10,7 @@ var Player = function(id, name, x, y) {
 var testLobbyState = {
 	// Entities are keyed by ID.
 	entities: {},
+	started: false,
 	
 	preload: function(){
 		bgm.stop();
@@ -20,16 +21,15 @@ var testLobbyState = {
 		game.stage.disableVisibilityChange = true;
 		var loginText = game.add.text(128, 72, "Test Lobby", { font: '100px Bubblegum Sans', fill: '#ffffff'});
 		
+		keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
+		keyD.onDown.add(processD, this);
+		
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.stage.backgroundColor = '#124184';
 		game.physics.p2.gravity.y = 100;
 		// lobbyState comes from the server.
-		this.updateState(lobbyState);
 		
-	},
-	
-	start: function(){
-		
+		this.started = true;
 	},
 	
 	update: function(){
@@ -41,41 +41,57 @@ var testLobbyState = {
 			Updating the properties of existing objects
 			Creating objects that currently have not been spawned on the client
 	*/
-	updateState: function(lobbyState){
-		console.log(lobbyState);
-		for(var index in lobbyState.entities){
-			var ent = lobbyState.entities[index];
-			console.log(this.entities);
-			console.log(ent.entity.id);
-			if(!(ent.entity.id in this.entities)){
-				this.makeEntity(ent.entity, ent.controllable);
+	updateState: function(serverState){
+		
+		for(var index in serverState.entities){
+			var ent = serverState.entities[index];
+			
+			if(!(ent.id in this.entities)){
+				this.makeEntity(ent);
 			}else{
-				this.updateEntity(ent.entity);
+				this.updateEntity(ent);
 			}
 		}	
 	},
 	
-	makeEntity: function(entData, controllable){
+	makeEntity: function(entData){
 		// Converts data from the server to sprites
 		
-		switch(entData.entityType){
+		switch(entData.type){
 			case "Dragon":
 				var dragonSprite = this.game.add.sprite(entData.x, entData.y, 'testDragon');
 				dragonSprite.animations.add('walkleft', [3,4,5], 5, true);
 				dragonSprite.animations.add('walkright', [0,1,2], 5, true);
 				dragonSprite.animations.play('walkright');
-				game.physics.p2.enable(dragonSprite);
-				this.entities[entData.id] = {controllable: controllable, sprite: dragonSprite};
+				// console.log(game.physics);
+				// console.log(game.physics.p2);
+				this.game.physics.p2.enable(dragonSprite);
+				this.entities[entData.id] = {type: "Dragon", controllable: entData.controllable, sprite: dragonSprite};
 				break;
 		}
 		
 	},
 
 	updateEntity: function(entData){
-		console.log("UpdatePlayer?");
+		console.log("Server update");
+		console.log(entData.y);
+		currentEnt = this.entities[entData.id];
+		console.log(currentEnt);
+		currentEnt.sprite.body.x = entData.x;
+		currentEnt.sprite.body.y = entData.y;
 	}
 };
 
-
+function processD(){
+	if(game.state.getCurrentState().key == 'testLobby'){
+		// move controllable dragons right
+		for(var entID in testLobbyState.entities){
+			ent = testLobbyState.entities[entID];
+			if(ent.controllable && ent.type == "Dragon"){
+				ent.sprite.body.velocity.x = 150;
+			}
+		}
+	}
+}
 
 
