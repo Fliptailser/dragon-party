@@ -23,9 +23,10 @@ var p2 = require('p2');
 // Reduce the logging output of Socket.IO
 // io.set('log level',1);
 
+
 function lobbyUpdates(){
-	//console.log(testLobby.entities[0].entity.position[1] * -20);
-	testLobby.p2world.step(1 / 60);
+	
+	testLobby.p2world.step(1 / 30);
 	
 	for(var i = 0; i < testLobby.sockets.length; i++){
 		sock = testLobby.sockets[i];
@@ -43,32 +44,36 @@ var Lobby = function() {
 	// sets up timed updates to clients
 	this.start = function(){
 		
-		var floor = new p2.Body({ mass: 0, position: [ 0, -36] });
-		floor.addShape(new p2.Plane());
+		var floor = new p2.Body({ 
+			mass: 0, 
+			position: [ 640 / 20, 700 / -20]
+		});
+		floor.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
+		
 		this.p2world.addBody(floor);
 		
 		// Debug
 		//this.addDragon("testSocket", "Dragon", -12.5, -10);
 		
-		setInterval(lobbyUpdates, 1000/60);
+		setInterval(lobbyUpdates, 1000/30);
 	}
 	
 	
 	
 	this.addDragon = function(socket, name, x, y){
 		var dragon = new p2.Body({
-			mass: 1,
-            position: [x / -20, y / -20],
+			mass: 100,
+            position: [x / 20, y / -20],
             angle: 0,
             velocity: [0, 0],
             angularVelocity: 0
 		});
-		dragon.id = this.IDcount;
+		
 		dragon.entityType = "Dragon";
 		dragon.name = name;
-		dragon.addShape(new p2.Rectangle(10,5));
+		dragon.addShape(new p2.Box({width:10, height:5}));
 		this.p2world.addBody(dragon);
-		this.entities[this.IDcount] = {entity: dragon, controllers: [socket]};
+		this.entities[this.IDcount] = {id: this.IDcount, entity: dragon, controllers: [socket]};
 		this.IDcount += 1;
 	}
 	
@@ -86,12 +91,15 @@ var Lobby = function() {
 			
 			// Contextualizes "controllable" based on the particular client.
 			// These controllable entities can be updated more immediately by the client.
+			//console.log(entityData.entity.name + "\t" + entityData.entity.position[0]);
+			
 			entityState.push({
-				id: entityData.entity.id,
+				id: entityData.id,
+				name: entityData.entity.name,
 				type: entityData.entity.entityType,
-				x: -20 * entityData.entity.position[0],
-				y: -20 * entityData.entity.position[1],
-				dx: entityData.entity. velocity[0],
+				x: entityData.entity.position[0],
+				y: entityData.entity.position[1],
+				dx: entityData.entity.velocity[0],
 				dy: entityData.entity.velocity[1],
 				controllable: entityData.controllers && entityData.controllers.indexOf(socket) != -1
 			});
@@ -126,6 +134,7 @@ io.on('connection', function (socket) {
 			var ent = testLobby.entities[entID];
 			if(ent.controllers.indexOf(socket) != -1 && ent.entity.entityType == "Dragon"){
 				console.log("Deleting entity " + entID);
+				testLobby.p2world.removeBody(ent.entity);
 				delete testLobby.entities[entID];
 				// TODO: multiple rooms
 				io.emit('removeEntity', entID);

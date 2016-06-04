@@ -37,8 +37,6 @@ function lobbyUpdate(data){
 
 function removeEntity(entID){
 	if(game.state.getCurrentState().key == 'testLobby'){
-		console.log("Deleting entity " + entID);
-		testLobbyState.entities[entID].sprite.destroy();
-		delete testLobbyState.entities[entID];
+		testLobbyState.removeEntity(entID);
 	}
 };
