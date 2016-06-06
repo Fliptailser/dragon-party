@@ -25,6 +25,27 @@ var p2 = require('p2');
 
 
 function lobbyUpdates(){
+	for(var entID in testLobby.entities){
+		ent = testLobby.entities[entID];
+		switch(ent.entity.entityType){
+			case "Dragon":
+				//console.log("Updating " + ent.entity.name);
+				var countA = 0;
+				var countD = 0;
+				for(var i = 0; i < ent.controllers.length; i++){
+					var control = ent.controllers[i];
+					//console.log("\t" + control.id);
+					//console.log("\tA: " + testLobby.keyPolls[control]["KeyA"]);
+					//console.log("\tD: " + testLobby.keyPolls[control]["KeyD"]);
+					countA += testLobby.keyPolls[control]["KeyA"] ? 1 : 0;
+					countD += testLobby.keyPolls[control]["KeyD"] ? 1 : 0;
+				}
+				if(countA != countD){
+					ent.entity.velocity[0] = countD > countA ? 10 : -10;
+				}
+				break;
+		}
+	}
 	
 	testLobby.p2world.step(1 / 30);
 	
@@ -37,7 +58,10 @@ function lobbyUpdates(){
 
 var Lobby = function() {
 	this.sockets = [];
+	// Maps IDs to entitiy data.
 	this.entities = {};
+	// Maps sockets to key poll.
+	this.keyPolls = {};
 	this.p2world = new p2.World();
 	this.IDcount = 0;
 	
@@ -121,6 +145,13 @@ testLobby.start();
 io.on('connection', function (socket) {
 
     console.log('client connected\t' + socket.id);
+	str = JSON.stringify(testLobby.keyPolls, null, 4); // (Optional) beautiful indented output.
+	console.log(str);
+	
+	testLobby.keyPolls[socket.id] = {};
+	
+	str = JSON.stringify(testLobby.keyPolls, null, 4); // (Optional) beautiful indented output.
+	console.log(str);
 	socket.emit('connected', { message: "You are connected!" });
 	
 	/*
@@ -128,8 +159,6 @@ io.on('connection', function (socket) {
 	*/
 	socket.on('disconnect', function(){
 		console.log('client disconnected\t' + socket.id);
-		arrayRemove(playerPool, socket);
-		arrayRemove(testLobby.sockets, socket);
 		for(var entID in testLobby.entities){
 			var ent = testLobby.entities[entID];
 			if(ent.controllers.indexOf(socket) != -1 && ent.entity.entityType == "Dragon"){
@@ -140,24 +169,39 @@ io.on('connection', function (socket) {
 				io.emit('removeEntity', entID);
 			}
 		}
+		delete testLobby.keyPolls[socket.id];
+		arrayRemove(playerPool, socket);
+		arrayRemove(testLobby.sockets, socket);
+		
 	});
 	
 	/*
 		When a client tells the server it's joining a game.
 	*/
 	socket.on('playerJoin', function(data){
-		console.log("Joining player named: " + data["name"]);
+		console.log("Joining player named: " + data.name);
 		
 		playerPool.push(socket);
 		
 		// for now, just put them in a room.
 		arrayRemove(playerPool, socket);
 		testLobby.sockets.push(socket);
-		testLobby.addDragon(socket, data["name"], 250, 200);
+		testLobby.addDragon(socket.id, data.name, (Math.random() * 2 + 1) * 320, 200);
 		
 		socket.emit("joinedTestLobby", testLobby.getStateForClient(socket));
 	});
 	
+	/*
+		Key events from the client.
+	*/
+	socket.on('keyDown', function(data){
+		testLobby.keyPolls[socket.id][data.keyCode] = true;
+	});
+	
+	socket.on('keyUp', function(data){
+		
+		testLobby.keyPolls[socket.id][data.keyCode] = false;
+	});
 });
 
 

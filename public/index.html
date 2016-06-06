@@ -12,6 +12,13 @@
 	<script type="text/javascript" src="js/phaser.min.js"></script>
 	<script type="text/javascript" src="js/p2.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	
+	<script type="text/javascript" src="js/boot.js"></script>
+	<script type="text/javascript" src="js/load.js"></script>
+	<script type="text/javascript" src="js/login.js"></script>
+	<script type="text/javascript" src="js/mainMenu.js"></script>
+	<script type="text/javascript" src="js/testLobby.js"></script>
+	
 	<script type='text/javascript' > 
 		var socket = io();
 		var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
@@ -27,7 +34,15 @@
 		}
 
 		function create() {
-
+			game.state.add('boot', bootState);
+			game.state.add('load', loadState);
+			game.state.add('login', loginState);
+			game.state.add('mainMenu', mainMenuState);
+			game.state.add('testLobby', testLobbyState);
+		
+			game.input.keyboard.addCallbacks(this, gameKeyDown, gameKeyUp, gameKeyPress);
+			
+			game.state.start('boot');
 		}
 
 		function update() {
@@ -38,11 +53,7 @@
 	</script>
 	
 	
-	<script type="text/javascript" src="js/boot.js"></script>
-	<script type="text/javascript" src="js/load.js"></script>
-	<script type="text/javascript" src="js/login.js"></script>
-	<script type="text/javascript" src="js/mainMenu.js"></script>
-	<script type="text/javascript" src="js/testLobby.js"></script>
+	
     <link href="style.css" rel="stylesheet">
 	
 	<!-- JavaScript Libraries -->

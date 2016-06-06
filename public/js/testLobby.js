@@ -10,6 +10,7 @@ var Player = function(id, name, x, y) {
 var testLobbyState = {
 	// Entities are keyed by ID.
 	entities: {},
+	keyPoll: {},
 	started: false,
 	p2world: new p2.World(),
 	
@@ -22,9 +23,6 @@ var testLobbyState = {
 	create: function(){
 		game.stage.disableVisibilityChange = true;
 		var loginText = game.add.text(128, 72, "Test Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
-		
-		keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
-		keyD.onDown.add(processD, this);
 		
 		this.p2world.gravity = [0, -10];
 		
@@ -40,11 +38,22 @@ var testLobbyState = {
 		game.stage.backgroundColor = '#124184';
 		
 		// lobbyState comes from the server.
-		
+		this.keyPoll["KeyA"] = false;
+		this.keyPoll["KeyD"] = false;
 		this.started = true;
 	},
 	
 	update: function(){
+		// move controllable dragons
+		for(var entID in testLobbyState.entities){
+			ent = testLobbyState.entities[entID];
+			if(ent.controllable && ent.type == "Dragon"){
+				if(this.keyPoll["KeyA"] != this.keyPoll["KeyD"]){
+					ent.body.velocity[0] = this.keyPoll["KeyD"] ? 10 : -10;
+				}
+			}
+		}
+		
 		// sync sprites with bodies
 		//console.log("update");
 		this.p2world.step(1 / 60)
@@ -111,10 +120,9 @@ var testLobbyState = {
 	},
 
 	updateEntity: function(entData){
-		console.log("Server update");
-		console.log(entData.y);
+		
 		currentEnt = this.entities[entData.id];
-		console.log(currentEnt);
+		
 		currentEnt.body.position[0] = entData.x;
 		currentEnt.body.position[1] = entData.y;
 	},
@@ -126,19 +134,20 @@ var testLobbyState = {
 		ent.nameTag.destroy();
 		testLobbyState.p2world.removeBody(ent.body);
 		delete testLobbyState.entities[entID];
-	}
-};
-
-function processD(){
-	if(game.state.getCurrentState().key == 'testLobby'){
-		// move controllable dragons right
-		for(var entID in testLobbyState.entities){
-			ent = testLobbyState.entities[entID];
-			if(ent.controllable && ent.type == "Dragon"){
-				ent.body.velocity[0] = 15;
-			}
+	},
+	
+	gameKeyDown: function(keyEvent){
+		this.keyPoll[keyEvent.code] = true;
+		if(["KeyA", "KeyD"].indexOf(keyEvent.code) != -1){
+			socket.emit("keyDown", {keyCode : keyEvent.code});
+		}
+	},
+	
+	gameKeyUp: function(keyEvent){
+		this.keyPoll[keyEvent.code] = false;
+		if(["KeyA", "KeyD"].indexOf(keyEvent.code) != -1){
+			socket.emit("keyUp", {keyCode : keyEvent.code});
 		}
 	}
-}
-
+};
 

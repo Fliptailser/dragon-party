@@ -29,5 +29,5 @@ var mainMenuState = {
 
 function playerJoin () {
 	console.log("Joining game server.");
-	socket.emit("playerJoin", {socketID : socket.id, name : localPlayerName});
+	socket.emit("playerJoin", {name : localPlayerName});
 }

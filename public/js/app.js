@@ -9,14 +9,6 @@ var nameSubmit = function(){
 
 jQuery(function($){    
     'use strict';
-
-	game.state.add('boot', bootState);
-	game.state.add('load', loadState);
-	game.state.add('login', loginState);
-	game.state.add('mainMenu', mainMenuState);
-	game.state.add('testLobby', testLobbyState);
-	
-	game.state.start('boot');
 	
 	socket.on("joinedTestLobby", enterTestLobby);
 	socket.on("removeEntity", removeEntity);
@@ -40,3 +32,19 @@ function removeEntity(entID){
 		testLobbyState.removeEntity(entID);
 	}
 };
+
+function gameKeyDown(keyEvent){
+	if(game.state.getCurrentState().key == 'testLobby'){
+		testLobbyState.gameKeyDown(keyEvent);
+	}
+}
+
+function gameKeyUp(keyEvent){
+	if(game.state.getCurrentState().key == 'testLobby'){
+		testLobbyState.gameKeyUp(keyEvent);
+	}
+}
+
+function gameKeyPress(keyEvent){
+	
+}
