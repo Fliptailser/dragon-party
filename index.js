@@ -37,8 +37,10 @@ function lobbyUpdates(){
 					//console.log("\t" + control.id);
 					//console.log("\tA: " + testLobby.keyPolls[control]["KeyA"]);
 					//console.log("\tD: " + testLobby.keyPolls[control]["KeyD"]);
-					countA += testLobby.keyPolls[control]["KeyA"] ? 1 : 0;
-					countD += testLobby.keyPolls[control]["KeyD"] ? 1 : 0;
+					if(testLobby.keyPolls[control]){
+						countA += testLobby.keyPolls[control]["KeyA"] ? 1 : 0;
+						countD += testLobby.keyPolls[control]["KeyD"] ? 1 : 0;
+					}
 				}
 				if(countA != countD){
 					ent.entity.velocity[0] = countD > countA ? 10 : -10;
@@ -84,7 +86,7 @@ var Lobby = function() {
 	
 	
 	
-	this.addDragon = function(socket, name, x, y){
+	this.addDragon = function(socketID, name, x, y){
 		var dragon = new p2.Body({
 			mass: 100,
             position: [x / 20, y / -20],
@@ -97,7 +99,7 @@ var Lobby = function() {
 		dragon.name = name;
 		dragon.addShape(new p2.Box({width:10, height:5}));
 		this.p2world.addBody(dragon);
-		this.entities[this.IDcount] = {id: this.IDcount, entity: dragon, controllers: [socket]};
+		this.entities[this.IDcount] = {id: this.IDcount, entity: dragon, controllers: [socketID]};
 		this.IDcount += 1;
 	}
 	
@@ -125,7 +127,7 @@ var Lobby = function() {
 				y: entityData.entity.position[1],
 				dx: entityData.entity.velocity[0],
 				dy: entityData.entity.velocity[1],
-				controllable: entityData.controllers && entityData.controllers.indexOf(socket) != -1
+				controllable: entityData.controllers && entityData.controllers.indexOf(socket.id) != -1
 			});
 		}
 		
@@ -145,13 +147,10 @@ testLobby.start();
 io.on('connection', function (socket) {
 
     console.log('client connected\t' + socket.id);
-	str = JSON.stringify(testLobby.keyPolls, null, 4); // (Optional) beautiful indented output.
-	console.log(str);
+	
 	
 	testLobby.keyPolls[socket.id] = {};
 	
-	str = JSON.stringify(testLobby.keyPolls, null, 4); // (Optional) beautiful indented output.
-	console.log(str);
 	socket.emit('connected', { message: "You are connected!" });
 	
 	/*
@@ -161,7 +160,8 @@ io.on('connection', function (socket) {
 		console.log('client disconnected\t' + socket.id);
 		for(var entID in testLobby.entities){
 			var ent = testLobby.entities[entID];
-			if(ent.controllers.indexOf(socket) != -1 && ent.entity.entityType == "Dragon"){
+			
+			if(ent.controllers.indexOf(socket.id) != -1 && ent.entity.entityType == "Dragon"){
 				console.log("Deleting entity " + entID);
 				testLobby.p2world.removeBody(ent.entity);
 				delete testLobby.entities[entID];
@@ -196,6 +196,19 @@ io.on('connection', function (socket) {
 	*/
 	socket.on('keyDown', function(data){
 		testLobby.keyPolls[socket.id][data.keyCode] = true;
+		
+		if(data.keyCode == "Space"){
+			for(var entID in testLobby.entities){
+				ent = testLobby.entities[entID];
+				switch(ent.entity.entityType){
+					case "Dragon":
+						if(ent.controllers.indexOf(socket.id) != -1){
+							ent.entity.velocity[1] = 10;
+						}
+						break;
+				}
+			}
+		}
 	});
 	
 	socket.on('keyUp', function(data){

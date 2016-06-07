@@ -37,16 +37,19 @@ var testLobbyState = {
 		
 		game.stage.backgroundColor = '#124184';
 		
+		game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+		
 		// lobbyState comes from the server.
 		this.keyPoll["KeyA"] = false;
 		this.keyPoll["KeyD"] = false;
+		
 		this.started = true;
 	},
 	
 	update: function(){
 		// move controllable dragons
-		for(var entID in testLobbyState.entities){
-			ent = testLobbyState.entities[entID];
+		for(var entID in this.entities){
+			ent = this.entities[entID];
 			if(ent.controllable && ent.type == "Dragon"){
 				if(this.keyPoll["KeyA"] != this.keyPoll["KeyD"]){
 					ent.body.velocity[0] = this.keyPoll["KeyD"] ? 10 : -10;
@@ -137,15 +140,29 @@ var testLobbyState = {
 	},
 	
 	gameKeyDown: function(keyEvent){
+		console.log(keyEvent.code);
 		this.keyPoll[keyEvent.code] = true;
-		if(["KeyA", "KeyD"].indexOf(keyEvent.code) != -1){
+		if(["KeyA", "KeyD", "Space"].indexOf(keyEvent.code) != -1){
 			socket.emit("keyDown", {keyCode : keyEvent.code});
+		}
+		
+		if(keyEvent.code == "Space"){
+			
+			for(var entID in this.entities){
+				console.log(ent);
+				ent = this.entities[entID];
+				if(ent.controllable && ent.type == "Dragon"){
+					console.log("APplying jump");
+					ent.body.velocity[1] = 10;
+					
+				}
+			}
 		}
 	},
 	
 	gameKeyUp: function(keyEvent){
 		this.keyPoll[keyEvent.code] = false;
-		if(["KeyA", "KeyD"].indexOf(keyEvent.code) != -1){
+		if(["KeyA", "KeyD", "Space"].indexOf(keyEvent.code) != -1){
 			socket.emit("keyUp", {keyCode : keyEvent.code});
 		}
 	}
