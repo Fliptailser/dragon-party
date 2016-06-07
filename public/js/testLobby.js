@@ -18,6 +18,7 @@ var testLobbyState = {
 		bgm.stop();
 		this.game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
 		this.game.load.image('floor', 'assets/floor.png');
+		this.game.load.image('wall', 'assets/wall.png');
 	},
 	
 	create: function(){
@@ -26,15 +27,39 @@ var testLobbyState = {
 		
 		this.p2world.gravity = [0, -10];
 		
+		
+		
+		var wallLeft = new p2.Body({
+			mass: 0,
+			position: [ 20 / 20, 360 / -20]
+		});
+		wallLeft.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
+		this.p2world.addBody(wallLeft);
+		var wallLeftSprite = this.game.add.sprite(0, 0, 'wall');
+		
+		var wallRight = new p2.Body({
+			mass: 0,
+			position: [ 1260 / 20, 360 / -20]
+		});
+		wallRight.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
+		this.p2world.addBody(wallRight);
+		var wallRightSprite = this.game.add.sprite(1240, 0, 'wall');
+		
 		var floor = new p2.Body({ 
 			mass: 0, 
 			position: [ 640 / 20, 700 / -20]
 		});
 		floor.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
-		
 		this.p2world.addBody(floor);
 		var floorSprite = this.game.add.sprite(0, 720 - 40, 'floor');
 		
+		var ceil = new p2.Body({ 
+			mass: 0, 
+			position: [ 640 / 20, 20 / -20]
+		});
+		ceil.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
+		this.p2world.addBody(ceil);
+		var ceilSprite = this.game.add.sprite(0, 0, 'floor');
 		
 		game.stage.backgroundColor = '#124184';
 		
@@ -153,21 +178,16 @@ var testLobbyState = {
 	},
 	
 	gameKeyDown: function(keyEvent){
-		console.log(keyEvent.code);
 		this.keyPoll[keyEvent.code] = true;
 		if(["KeyA", "KeyD", "Space"].indexOf(keyEvent.code) != -1){
 			socket.emit("keyDown", {keyCode : keyEvent.code});
 		}
 		
 		if(keyEvent.code == "Space"){
-			
 			for(var entID in this.entities){
-				console.log(ent);
 				ent = this.entities[entID];
 				if(ent.controllable && ent.type == "Dragon"){
-					console.log("APplying jump");
 					ent.body.velocity[1] = 10;
-					
 				}
 			}
 		}

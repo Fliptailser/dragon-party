@@ -84,8 +84,30 @@ var Lobby = function() {
 			position: [ 640 / 20, 700 / -20]
 		});
 		floor.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
-		
 		this.p2world.addBody(floor);
+		
+		var ceil = new p2.Body({ 
+			mass: 0, 
+			position: [ 640 / 20, 20 / -20]
+		});
+		ceil.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
+		this.p2world.addBody(ceil);
+		
+		var wallLeft = new p2.Body({
+			mass: 0,
+			position: [ 20 / 20, 360 / -20]
+		});
+		wallLeft.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
+		this.p2world.addBody(wallLeft);
+		
+		
+		var wallRight = new p2.Body({
+			mass: 0,
+			position: [ 1260 / 20, 360 / -20]
+		});
+		wallRight.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
+		this.p2world.addBody(wallRight);
+		
 		
 		// Debug
 		//this.addDragon("testSocket", "Dragon", -12.5, -10);
