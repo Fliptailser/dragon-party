@@ -47,6 +47,15 @@ function lobbyUpdates(){
 				}
 				break;
 		}
+		
+		ent.entity.velocity[0] *= 0.80;
+		
+		if(ent.entity.angle > Math.PI / 12){
+			ent.entity.angle = Math.PI / 12;
+		}
+		if(ent.entity.angle < -Math.PI / 12){
+			ent.entity.angle = -Math.PI / 12;
+		}
 	}
 	
 	testLobby.p2world.step(1 / 30);
@@ -127,6 +136,7 @@ var Lobby = function() {
 				y: entityData.entity.position[1],
 				dx: entityData.entity.velocity[0],
 				dy: entityData.entity.velocity[1],
+				angle: entityData.entity.angle,
 				controllable: entityData.controllers && entityData.controllers.indexOf(socket.id) != -1
 			});
 		}

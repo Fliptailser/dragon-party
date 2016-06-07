@@ -35,6 +35,7 @@ var testLobbyState = {
 		this.p2world.addBody(floor);
 		var floorSprite = this.game.add.sprite(0, 720 - 40, 'floor');
 		
+		
 		game.stage.backgroundColor = '#124184';
 		
 		game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
@@ -55,6 +56,16 @@ var testLobbyState = {
 					ent.body.velocity[0] = this.keyPoll["KeyD"] ? 10 : -10;
 				}
 			}
+			
+			ent.body.velocity[0] *= 0.80;
+			
+			if(ent.body.angle > Math.PI / 12){
+				ent.body.angle = Math.PI / 12;
+			}
+			if(ent.body.angle < -Math.PI / 12){
+				ent.body.angle = -Math.PI / 12;
+			}
+			
 		}
 		
 		// sync sprites with bodies
@@ -64,11 +75,11 @@ var testLobbyState = {
 			ent = this.entities[entID];
 			//console.log(ent);
 			if(ent.body && ent.sprite){
-				ent.sprite.x = ent.body.position[0] * 20 - ent.sprite.width / 2;
-				ent.sprite.y = ent.body.position[1] * -20 - ent.sprite.height/2;
-				
+				ent.sprite.x = ent.body.position[0] * 20;
+				ent.sprite.y = ent.body.position[1] * -20;
+				ent.sprite.rotation = - ent.body.angle;
 				ent.nameTag.x = ent.body.position[0] * 20 - ent.nameTag.width / 2;
-				ent.nameTag.y = ent.body.position[1] * -20 - ent.sprite.height/2  - 40;
+				ent.nameTag.y = ent.body.position[1] * -20 - ent.sprite.height/2  - 45;
 				ent.nameTag.bringToTop();
 			}
 			
@@ -99,11 +110,12 @@ var testLobbyState = {
 		switch(entData.type){
 			case "Dragon":
 				var dragonSprite = this.game.add.sprite(20 * entData.x, -20 * entData.y, 'testDragon');
+				dragonSprite.anchor.setTo(0.5, 0.5);
 				dragonSprite.animations.add('walkleft', [3,4,5], 5, true);
 				dragonSprite.animations.add('walkright', [0,1,2], 5, true);
 				dragonSprite.animations.play('walkright');
 				
-				var dragonName = game.add.text(entData.x , entData.y - 50, entData.name, { font: '40px Bubblegum Sans', fill: '#ffaaaa'});
+				var dragonName = game.add.text(entData.x , entData.y - 50, entData.name, { font: '35px Bubblegum Sans', fill: '#ffaaaa'});
 				
 				// console.log(game.physics);
 				// console.log(game.physics.p2);
@@ -128,6 +140,7 @@ var testLobbyState = {
 		
 		currentEnt.body.position[0] = entData.x;
 		currentEnt.body.position[1] = entData.y;
+		currentEnt.body.angle = entData.angle;
 	},
 	
 	removeEntity: function(entID){
