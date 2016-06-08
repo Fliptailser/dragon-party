@@ -31,6 +31,21 @@ p {
 	margin-right: auto;
 }
 
+#namefield{
+	font-family: 'Bubblegum Sans', cursive;
+    font-size: 20px;
+    margin-left: 5px;
+    padding-left: 5px;
+    width: 140px;
+}
+
+#namesubmit{
+	margin-top: 15px;
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 20px;
+    width: 250px;
+}
+
 #about{
 	background-color:rgba(255,255,255,0.7);
 	margin-left: auto;
@@ -42,7 +57,7 @@ p {
 }
 
 #login{
-	    margin-left: auto;
+	margin-left: auto;
     margin-right: auto;
     padding: 20px;
     width: 350px;
@@ -52,5 +67,8 @@ p {
     left: 0;
     right: 0;
     background-color: white;
+	font-size: 20px;
     font-family: 'Bubblegum Sans', cursive;
+	border-radius: 15px;
+    border: 8px solid #354E88;
 }

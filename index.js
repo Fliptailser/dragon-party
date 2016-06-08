@@ -235,7 +235,7 @@ io.on('connection', function (socket) {
 				switch(ent.entity.entityType){
 					case "Dragon":
 						if(ent.controllers.indexOf(socket.id) != -1){
-							ent.entity.velocity[1] = 10;
+							ent.entity.velocity[1] += 5;
 						}
 						break;
 				}

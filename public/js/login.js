@@ -4,7 +4,7 @@ var loginState = {
 	},
 	
 	create: function(){
-		console.log("At login screen!");
+		console.log("Entering login screen.");
 		var loginText = game.add.text(128, 72, "Login Screen!", { font: '100px Bubblegum Sans', fill: '#ffffff'});
 	},
 	

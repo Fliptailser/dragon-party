@@ -15,10 +15,8 @@ var testLobbyState = {
 	p2world: new p2.World(),
 	
 	preload: function(){
-		bgm.stop();
-		this.game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
-		this.game.load.image('floor', 'assets/floor.png');
-		this.game.load.image('wall', 'assets/wall.png');
+		game.sound.stopAll();
+		
 	},
 	
 	create: function(){
@@ -187,7 +185,7 @@ var testLobbyState = {
 			for(var entID in this.entities){
 				ent = this.entities[entID];
 				if(ent.controllable && ent.type == "Dragon"){
-					ent.body.velocity[1] = 10;
+					ent.body.velocity[1] += 5;
 				}
 			}
 		}
