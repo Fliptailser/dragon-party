@@ -15,7 +15,7 @@ function preload() {
 	console.log("Loading...");
 	var loadingLabel = game.add.text(80,150, 'Loading...', {font: '30px Bubblegum Sans', fill: '#ffffff'});
 		
-	game.load.spritesheet('testButton', 'assets/testbutton.png', 150, 80);
+	game.load.spritesheet('joinPartyButton', 'assets/joinpartybutton.png', 350, 100);
 	game.load.audio('bgm_wakeup', 'sounds/bgm_wakeup.wav');
 	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
 	game.load.image('floor', 'assets/floor.png');

@@ -44,6 +44,7 @@ p {
     font-family: 'Bubblegum Sans', cursive;
     font-size: 20px;
     width: 250px;
+	cursor:pointer;
 }
 
 #about{

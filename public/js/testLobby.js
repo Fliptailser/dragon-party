@@ -37,11 +37,11 @@ var testLobbyState = {
 		
 		var wallRight = new p2.Body({
 			mass: 0,
-			position: [ 1260 / 20, 360 / -20]
+			position: [ (1280 - 320) / 20, 360 / -20]
 		});
 		wallRight.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
 		this.p2world.addBody(wallRight);
-		var wallRightSprite = this.game.add.sprite(1240, 0, 'wall');
+		var wallRightSprite = this.game.add.sprite(1280 - 320 - 20, 0, 'wall');
 		
 		var floor = new p2.Body({ 
 			mass: 0, 
