@@ -16,6 +16,11 @@ function preload() {
 	var loadingLabel = game.add.text(80,150, 'Loading...', {font: '30px Bubblegum Sans', fill: '#ffffff'});
 		
 	game.load.spritesheet('joinPartyButton', 'assets/joinpartybutton.png', 350, 100);
+	game.load.spritesheet('hostPartyButton', 'assets/hostpartybutton.png', 350, 100);
+	game.load.spritesheet('joinAutoButton', 'assets/autobutton.png', 200, 60);
+	game.load.spritesheet('joinSelectButton', 'assets/selectbutton.png', 200, 60);
+	game.load.spritesheet('hostPublicButton', 'assets/publicbutton.png', 200, 60);
+	game.load.spritesheet('hostPrivateButton', 'assets/privatebutton.png', 200, 60);
 	game.load.audio('bgm_wakeup', 'sounds/bgm_wakeup.wav');
 	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
 	game.load.image('floor', 'assets/floor.png');
@@ -45,8 +50,15 @@ var localPlayerName;
 var nameSubmit = function(){
 	localPlayerName = $("#namefield").val();
 	game.state.start('mainMenu');
-	$("#login").hide();
+	$("#login").css("visibility", "hidden");
 };
+
+var lobbyCodeSubmit = function(){
+	var lobbyCode = $("#lobbyCodeField").val();
+	if(game.state.getCurrentState().key == 'mainMenu'){
+		game.state.getCurrentState().joinSelect();
+	}
+}
 
 function enterTestLobby(data){
 	game.state.start('testLobby');

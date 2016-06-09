@@ -218,7 +218,7 @@ io.on('connection', function (socket) {
 		// for now, just put them in a room.
 		arrayRemove(playerPool, socket);
 		testLobby.sockets.push(socket);
-		testLobby.addDragon(socket.id, data.name, (Math.random() * 2 + 1) * 320, 200);
+		testLobby.addDragon(socket.id, data.name, Math.random() * 680 + 150, 550);
 		
 		socket.emit("joinedTestLobby", testLobby.getStateForClient(socket));
 	});
