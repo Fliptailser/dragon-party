@@ -67,7 +67,35 @@ io.on('connection', function (socket) {
 		If no lobby is available after waiting a little while, the client will host a new public lobby.
 	*/
 	socket.on('clientJoinAuto', function(){
+		var bestLobby = null;
+		for(var code in publicLobbies){
+			// TODO: prioritization
+			if(bestLobby == null || true){
+				bestLobby = publicLobbies[code];
+			}
+		}
 		
+		if(bestLobby == null){
+			var lobbyCode = generateCode();
+			while(lobbyCode in publicLobbies || lobbyCode in privateLobbies){
+				lobbyCode = generateCode();
+			}
+			
+			var lobby = new Lobby(lobbyCode, socket.id);
+			publicLobbies[lobbyCode] = lobby;
+			console.log("Generated new public lobby with code " + lobbyCode);
+			
+			lobby.addPlayer(onlinePlayers[socket.id]);
+			
+			socket.gameLobby = lobby;
+			
+			lobby.start();
+			socket.emit("enterLobby");
+		}else{
+			bestLobby.addPlayer(onlinePlayers[socket.id]);
+			socket.gameLobby = bestLobby;
+			socket.emit("enterLobby");
+		}
 	});
 	
 	/*
