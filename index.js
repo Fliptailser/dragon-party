@@ -47,6 +47,16 @@ io.on('connection', function (socket) {
 		
 		if(socket.gameLobby){
 			socket.gameLobby.removePlayer(onlinePlayers[socket.id]);
+			if(Object.keys(socket.gameLobby.players).length === 0){
+				console.log("Removing empty lobby.");
+				socket.gameLobby.stop();
+				var lobbyCode = socket.gameLobby.lobbyCode;
+				
+				delete publicLobbies[lobbyCode];
+				delete privateLobbies[lobbyCode];
+				
+				// TODO: similar check when a player leaves lobby to return to main menu.
+			}
 		}
 		
 		delete onlinePlayers[socket.id];

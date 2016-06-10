@@ -12,7 +12,7 @@ var gameLobbyState = {
 	
 	create: function(){
 		game.stage.disableVisibilityChange = true;
-		var loginText = game.add.text(128, 72, "Test Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
+		var loginText = game.add.text(128, 72, "Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
 		
 		this.p2world.gravity = [0, -10];
 		
@@ -27,6 +27,9 @@ var gameLobbyState = {
 		this.keyPoll["KeyD"] = false;
 		
 		this.started = true;
+		
+		var bgm = game.add.audio('bgmLobby', 0.20, true);
+		bgm.play();
 	},
 	
 	addWalls: function(){

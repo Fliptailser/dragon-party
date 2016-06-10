@@ -24,6 +24,7 @@ function preload() {
 	game.load.spritesheet('hostPublicButton', 'assets/publicbutton.png', 200, 60);
 	game.load.spritesheet('hostPrivateButton', 'assets/privatebutton.png', 200, 60);
 	game.load.audio('bgm_wakeup', 'sounds/bgm_wakeup.wav');
+	game.load.audio('bgmLobby', 'sounds/bgm_lobby.wav');
 	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
