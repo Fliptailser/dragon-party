@@ -1,13 +1,5 @@
-var Player = function(id, name, x, y) {
-	this.id = id;
-	this.name = name;
-	this.x = x;
-	this.y = y;
-	this.dx = 0;
-	this.dy = 0;
-}
-
-var testLobbyState = {
+var gameLobbyState = {
+	
 	// Entities are keyed by ID.
 	entities: {},
 	keyPoll: {},
@@ -16,7 +8,6 @@ var testLobbyState = {
 	
 	preload: function(){
 		game.sound.stopAll();
-		
 	},
 	
 	create: function(){
@@ -25,8 +16,20 @@ var testLobbyState = {
 		
 		this.p2world.gravity = [0, -10];
 		
+		this.addWalls();
 		
+		game.stage.backgroundColor = '#124184';
 		
+		game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
+		
+		// lobbyState comes from the server.
+		this.keyPoll["KeyA"] = false;
+		this.keyPoll["KeyD"] = false;
+		
+		this.started = true;
+	},
+	
+	addWalls: function(){
 		var wallLeft = new p2.Body({
 			mass: 0,
 			position: [ 20 / 20, 360 / -20]
@@ -58,16 +61,6 @@ var testLobbyState = {
 		ceil.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
 		this.p2world.addBody(ceil);
 		var ceilSprite = this.game.add.sprite(0, 0, 'floor');
-		
-		game.stage.backgroundColor = '#124184';
-		
-		game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
-		
-		// lobbyState comes from the server.
-		this.keyPoll["KeyA"] = false;
-		this.keyPoll["KeyD"] = false;
-		
-		this.started = true;
 	},
 	
 	update: function(){
@@ -115,7 +108,6 @@ var testLobbyState = {
 			Creating objects that currently have not been spawned on the client
 	*/
 	updateState: function(serverState){
-		
 		for(var index in serverState.entities){
 			var ent = serverState.entities[index];
 			
@@ -168,11 +160,11 @@ var testLobbyState = {
 	
 	removeEntity: function(entID){
 		console.log("Deleting entity " + entID);
-		ent = testLobbyState.entities[entID];
+		ent = this.entities[entID];
 		ent.sprite.destroy();
 		ent.nameTag.destroy();
-		testLobbyState.p2world.removeBody(ent.body);
-		delete testLobbyState.entities[entID];
+		this.p2world.removeBody(ent.body);
+		delete this.entities[entID];
 	},
 	
 	gameKeyDown: function(keyEvent){
@@ -198,4 +190,3 @@ var testLobbyState = {
 		}
 	}
 };
-

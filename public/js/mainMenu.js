@@ -9,6 +9,7 @@ var mainMenuState = {
 		console.log("Entering main menu.");
 		game.stage.disableVisibilityChange = true;
 		var loginText = game.add.text(128, 72, "Main Menu!", { font: '100px Bubblegum Sans', fill: '#ffffff'});
+		console.log(playerData);
 		
 		var x = 1280 - 550;
 		var joinText = game.add.text(x, 135, "Join a party", { font: '65px Bubblegum Sans', fill: '#ffffff'});
@@ -32,35 +33,26 @@ var mainMenuState = {
 	
 	joinAuto: function(){
 		console.log("Auto-joining a lobby.");
+		socket.emit("clientJoinAuto");
 	},
 	
-	joinSelect: function(){
+	joinSelect: function(lobbyCode){
 		$("#lobbyCode").css("visibility", "hidden");
-		console.log("Joining a specific lobby.");
-		
+		console.log("Joining lobby using code " + lobbyCode + ".");
+		socket.emit("clientJoinSelect", {lobbyCode : lobbyCode});
 	},
 	
 	hostPublic: function(){
 		console.log("Hosting a public lobby.");
+		socket.emit("clientHost", {privateLobby : false});
 	},
 	
 	hostPrivate: function(){
 		console.log("Hosting a private lobby.");
+		socket.emit("clientHost", {privateLobby : true});
 	},
 	
 	showLobbyCodeWindow: function(){
 		$("#lobbyCode").css("visibility", "visible");
 	}
 };
-
-/*
-	
-*/
-function playerJoin () {
-	console.log("Joining game server.");
-	socket.emit("playerJoin", {name : localPlayerName});
-}
-
-function pass(){
-	console.log("pass");
-}

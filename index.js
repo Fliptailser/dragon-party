@@ -20,168 +20,22 @@ var io = require('socket.io').listen(server);
 // Load up p2 physics engine
 var p2 = require('p2');
 
+var Lobby = require('lobby.js');
+var Player = require('player.js');
 // Reduce the logging output of Socket.IO
 // io.set('log level',1);
 
+// Maps lobby codes to lobby objects.
+var publicLobbies = {};
+var privateLobbies = {};
 
-function lobbyUpdates(){
-	for(var entID in testLobby.entities){
-		ent = testLobby.entities[entID];
-		switch(ent.entity.entityType){
-			case "Dragon":
-				//console.log("Updating " + ent.entity.name);
-				var countA = 0;
-				var countD = 0;
-				for(var i = 0; i < ent.controllers.length; i++){
-					var control = ent.controllers[i];
-					//console.log("\t" + control.id);
-					//console.log("\tA: " + testLobby.keyPolls[control]["KeyA"]);
-					//console.log("\tD: " + testLobby.keyPolls[control]["KeyD"]);
-					if(testLobby.keyPolls[control]){
-						countA += testLobby.keyPolls[control]["KeyA"] ? 1 : 0;
-						countD += testLobby.keyPolls[control]["KeyD"] ? 1 : 0;
-					}
-				}
-				if(countA != countD){
-					ent.entity.velocity[0] = countD > countA ? 10 : -10;
-				}
-				break;
-		}
-		
-		ent.entity.velocity[0] *= 0.80;
-		
-		if(ent.entity.angle > Math.PI / 12){
-			ent.entity.angle = Math.PI / 12;
-		}
-		if(ent.entity.angle < -Math.PI / 12){
-			ent.entity.angle = -Math.PI / 12;
-		}
-	}
-	
-	testLobby.p2world.step(1 / 30);
-	
-	for(var i = 0; i < testLobby.sockets.length; i++){
-		sock = testLobby.sockets[i];
-		sock.emit("lobbyUpdate", testLobby.getStateForClient(sock));
-		
-	}
-}
+// Maps socket IDs to players
+var onlinePlayers = {};
 
-var Lobby = function() {
-	this.sockets = [];
-	// Maps IDs to entitiy data.
-	this.entities = {};
-	// Maps sockets to key poll.
-	this.keyPolls = {};
-	this.p2world = new p2.World();
-	this.IDcount = 0;
-	
-	// sets up timed updates to clients
-	this.start = function(){
-		
-		var floor = new p2.Body({ 
-			mass: 0, 
-			position: [ 640 / 20, 700 / -20]
-		});
-		floor.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
-		this.p2world.addBody(floor);
-		
-		var ceil = new p2.Body({ 
-			mass: 0, 
-			position: [ 640 / 20, 20 / -20]
-		});
-		ceil.addShape(new p2.Box({width:1280 / 20, height: 40 / 20}));
-		this.p2world.addBody(ceil);
-		
-		var wallLeft = new p2.Body({
-			mass: 0,
-			position: [ 20 / 20, 360 / -20]
-		});
-		wallLeft.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
-		this.p2world.addBody(wallLeft);
-		
-		
-		var wallRight = new p2.Body({
-			mass: 0,
-			position: [ (1280 - 320) / 20, 360 / -20]
-		});
-		wallRight.addShape(new p2.Box({width: 40 / 20, height: 720 / 20}));
-		this.p2world.addBody(wallRight);
-		
-		
-		// Debug
-		//this.addDragon("testSocket", "Dragon", -12.5, -10);
-		
-		setInterval(lobbyUpdates, 1000/30);
-	}
-	
-	
-	
-	this.addDragon = function(socketID, name, x, y){
-		var dragon = new p2.Body({
-			mass: 100,
-            position: [x / 20, y / -20],
-            angle: 0,
-            velocity: [0, 0],
-            angularVelocity: 0
-		});
-		
-		dragon.entityType = "Dragon";
-		dragon.name = name;
-		dragon.addShape(new p2.Box({width:10, height:5}));
-		this.p2world.addBody(dragon);
-		this.entities[this.IDcount] = {id: this.IDcount, entity: dragon, controllers: [socketID]};
-		this.IDcount += 1;
-	}
-	
-	/*
-		Generates information for parts of the lobby's state that cannot be initialized solely by the client:
-			Player positions and velocities
-			
-	*/
-	this.getStateForClient = function(socket){
-		
-		var state = Object();
-		var entityState = [];
-		for(var entID in this.entities){
-			var entityData = this.entities[entID];
-			
-			// Contextualizes "controllable" based on the particular client.
-			// These controllable entities can be updated more immediately by the client.
-			//console.log(entityData.entity.name + "\t" + entityData.entity.position[0]);
-			
-			entityState.push({
-				id: entityData.id,
-				name: entityData.entity.name,
-				type: entityData.entity.entityType,
-				x: entityData.entity.position[0],
-				y: entityData.entity.position[1],
-				dx: entityData.entity.velocity[0],
-				dy: entityData.entity.velocity[1],
-				angle: entityData.entity.angle,
-				controllable: entityData.controllers && entityData.controllers.indexOf(socket.id) != -1
-			});
-		}
-		
-		state.entities = entityState;
-		// if(entityState.length > 0){
-			// console.log(entityState[0]);
-		// }
-		return state;
-	}
-}
-
-var playerPool = [];
-var testLobby = new Lobby();
-testLobby.p2world.gravity = [0, -10];
-testLobby.start();
 // When a client connects, in here we have the connection: one socket between the server and the one client.
 io.on('connection', function (socket) {
 
     console.log('client connected\t' + socket.id);
-	
-	
-	testLobby.keyPolls[socket.id] = {};
 	
 	socket.emit('connected', { message: "You are connected!" });
 	
@@ -190,62 +44,88 @@ io.on('connection', function (socket) {
 	*/
 	socket.on('disconnect', function(){
 		console.log('client disconnected\t' + socket.id);
-		for(var entID in testLobby.entities){
-			var ent = testLobby.entities[entID];
-			
-			if(ent.controllers.indexOf(socket.id) != -1 && ent.entity.entityType == "Dragon"){
-				console.log("Deleting entity " + entID);
-				testLobby.p2world.removeBody(ent.entity);
-				delete testLobby.entities[entID];
-				// TODO: multiple rooms
-				io.emit('removeEntity', entID);
-			}
+		
+		if(socket.gameLobby){
+			socket.gameLobby.removePlayer(onlinePlayers[socket.id]);
 		}
-		delete testLobby.keyPolls[socket.id];
-		arrayRemove(playerPool, socket);
-		arrayRemove(testLobby.sockets, socket);
 		
+		delete onlinePlayers[socket.id];
 	});
 	
 	/*
-		When a client tells the server it's joining a game.
+		A client is asking to log in.
 	*/
-	socket.on('playerJoin', function(data){
-		console.log("Joining player named: " + data.name);
-		
-		playerPool.push(socket);
-		
-		// for now, just put them in a room.
-		arrayRemove(playerPool, socket);
-		testLobby.sockets.push(socket);
-		testLobby.addDragon(socket.id, data.name, Math.random() * 680 + 150, 550);
-		
-		socket.emit("joinedTestLobby", testLobby.getStateForClient(socket));
+	socket.on('clientLogin', function(data){
+		var player = new Player(socket, data.playerName);
+		onlinePlayers[socket.id] = player;
+		socket.emit("loginSuccessful", {name : player.name});
 	});
 	
 	/*
-		Key events from the client.
+		A client is auto-joining a lobby.
+		
+		If no lobby is available after waiting a little while, the client will host a new public lobby.
+	*/
+	socket.on('clientJoinAuto', function(){
+		
+	});
+	
+	/*
+		A client is joining a specific lobby, if the given lobby code is valid.
+	*/
+	socket.on('clientJoinSelect', function(data){
+		var code = data.lobbyCode.toUpperCase();
+		var lobby = null;
+		if(code in publicLobbies){
+			lobby = publicLobbies[code];
+		}else if(code in privateLobbies){
+			lobby = privateLobbies[code];
+		}else{
+			console.log("Invalid code " + data.lobbyCode);
+		}
+		
+		if(lobby != null){
+			lobby.addPlayer(onlinePlayers[socket.id]);
+			socket.gameLobby = lobby;
+			socket.emit("enterLobby");
+		}
+	});
+	
+	/*
+		A client is hosting a lobby - public or private.
+	*/
+	socket.on('clientHost', function(data){
+		var lobbyCode = generateCode();
+		while(lobbyCode in publicLobbies || lobbyCode in privateLobbies){
+			lobbyCode = generateCode();
+		}
+		
+		var lobby = new Lobby(lobbyCode, socket.id);
+		if(data.privateLobby){
+			privateLobbies[lobbyCode] = lobby;
+			console.log("Generated new private lobby with code " + lobbyCode);
+		}else{
+			publicLobbies[lobbyCode] = lobby;
+			console.log("Generated new public lobby with code " + lobbyCode);
+		}
+		
+		lobby.addPlayer(onlinePlayers[socket.id]);
+		
+		socket.gameLobby = lobby;
+		
+		lobby.start();
+		socket.emit("enterLobby");
+	});
+	
+	/*
+		Key events from the client (passes them to lobbies).
 	*/
 	socket.on('keyDown', function(data){
-		testLobby.keyPolls[socket.id][data.keyCode] = true;
-		
-		if(data.keyCode == "Space"){
-			for(var entID in testLobby.entities){
-				ent = testLobby.entities[entID];
-				switch(ent.entity.entityType){
-					case "Dragon":
-						if(ent.controllers.indexOf(socket.id) != -1){
-							ent.entity.velocity[1] += 5;
-						}
-						break;
-				}
-			}
-		}
+		socket.gameLobby.keyDown(socket, data.keyCode);
 	});
 	
 	socket.on('keyUp', function(data){
-		
-		testLobby.keyPolls[socket.id][data.keyCode] = false;
+		socket.gameLobby.keyUp(socket, data.keyCode);
 	});
 });
 
@@ -259,3 +139,16 @@ function arrayRemove(array, element){
 		array.splice(index, 1);
 	}
 };
+
+/*
+	Generates a random 6 character code.
+*/
+function generateCode(){
+	var code = "";
+    var set = "ABCDEFGHJKLMNPQRTWXY34689";
+
+    for(var i = 0; i < 6; i++){
+        code += set.charAt(Math.floor(Math.random() * set.length));
+	}
+    return code;
+}

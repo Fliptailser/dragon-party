@@ -5,11 +5,13 @@
 */
 
 var socket = io();
-socket.on("joinedTestLobby", enterTestLobby);
+socket.on("enterLobby", enterLobby);
 socket.on("removeEntity", removeEntity);
 socket.on("lobbyUpdate", lobbyUpdate);
+socket.on("loginSuccessful", loginSuccessful);
 	
 var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
+var playerData = null;
 
 function preload() {
 	console.log("Loading...");
@@ -32,7 +34,7 @@ function preload() {
 function create() {
 	game.state.add('login', loginState);
 	game.state.add('mainMenu', mainMenuState);
-	game.state.add('testLobby', testLobbyState);
+	game.state.add('gameLobby', gameLobbyState);
 
 	game.input.keyboard.addCallbacks(this, gameKeyDown, gameKeyUp, gameKeyPress);
 	
@@ -46,45 +48,53 @@ function update() {
 /*
 	Behavior for the name input box.
 */
-var localPlayerName;
 var nameSubmit = function(){
-	localPlayerName = $("#namefield").val();
-	game.state.start('mainMenu');
 	$("#login").css("visibility", "hidden");
+	
+	socket.emit("clientLogin", {playerName : $("#namefield").val()});
 };
 
 var lobbyCodeSubmit = function(){
-	var lobbyCode = $("#lobbyCodeField").val();
 	if(game.state.getCurrentState().key == 'mainMenu'){
-		game.state.getCurrentState().joinSelect();
+		game.state.getCurrentState().joinSelect($("#lobbyCodeField").val());
 	}
 }
 
-function enterTestLobby(data){
-	game.state.start('testLobby');
+function enterLobby(){
+	game.state.start('gameLobby');
 };
 
+/*
+	The server has accepted the login and returned player information.
+*/
+function loginSuccessful(data){
+	if(game.state.getCurrentState().key == 'login'){
+		playerData = {name : data.name};
+		game.state.start('mainMenu');	
+	}
+}
+
 function lobbyUpdate(data){
-	if(game.state.getCurrentState().key == 'testLobby' && testLobbyState.started){
-		testLobbyState.updateState(data);
+	if(game.state.getCurrentState().key == 'gameLobby' && game.state.getCurrentState().started){
+		gameLobbyState.updateState(data);
 	}
 }
 
 function removeEntity(entID){
-	if(game.state.getCurrentState().key == 'testLobby'){
-		testLobbyState.removeEntity(entID);
+	if(game.state.getCurrentState().key == 'gameLobby'){
+		gameLobbyState.removeEntity(entID);
 	}
 };
 
 function gameKeyDown(keyEvent){
-	if(game.state.getCurrentState().key == 'testLobby'){
-		testLobbyState.gameKeyDown(keyEvent);
+	if(game.state.getCurrentState().key == 'gameLobby'){
+		gameLobbyState.gameKeyDown(keyEvent);
 	}
 }
 
 function gameKeyUp(keyEvent){
-	if(game.state.getCurrentState().key == 'testLobby'){
-		testLobbyState.gameKeyUp(keyEvent);
+	if(game.state.getCurrentState().key == 'gameLobby'){
+		gameLobbyState.gameKeyUp(keyEvent);
 	}
 }
 
