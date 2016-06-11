@@ -91,7 +91,7 @@ io.on('connection', function (socket) {
 				lobbyCode = generateCode();
 			}
 			
-			var lobby = new Lobby(lobbyCode, socket.id);
+			var lobby = new Lobby(lobbyCode, socket.id, false);
 			publicLobbies[lobbyCode] = lobby;
 			console.log("Generated new public lobby with code " + lobbyCode);
 			
@@ -138,11 +138,13 @@ io.on('connection', function (socket) {
 			lobbyCode = generateCode();
 		}
 		
-		var lobby = new Lobby(lobbyCode, socket.id);
+		var lobby;
 		if(data.privateLobby){
+			lobby = new Lobby(lobbyCode, socket.id, true);
 			privateLobbies[lobbyCode] = lobby;
 			console.log("Generated new private lobby with code " + lobbyCode);
 		}else{
+			lobby = new Lobby(lobbyCode, socket.id, false);
 			publicLobbies[lobbyCode] = lobby;
 			console.log("Generated new public lobby with code " + lobbyCode);
 		}

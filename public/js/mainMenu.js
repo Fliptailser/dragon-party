@@ -12,14 +12,14 @@ var mainMenuState = {
 		console.log(playerData);
 		
 		var x = 1280 - 550;
-		var joinText = game.add.text(x, 135, "Join a party", { font: '65px Bubblegum Sans', fill: '#ffffff'});
-		var hostText = game.add.text(x, 385, "Host a party", { font: '65px Bubblegum Sans', fill: '#ffffff'});
+		var joinText = game.add.text(x, 100, "Join a party", { font: '65px Bubblegum Sans', fill: '#ffffff'});
+		var hostText = game.add.text(x, 450, "Host a party", { font: '65px Bubblegum Sans', fill: '#ffffff'});
 		
-		var joinAutoButton = game.add.button(x, 220, 'joinAutoButton', this.joinAuto, this, 1, 0, 2, 0);
-		var joinSelectButton = game.add.button(x + 220, 220, 'joinSelectButton', this.showLobbyCodeWindow, this, 1, 0, 2, 0);
+		var joinAutoButton = game.add.button(x, 180, 'joinAutoButton', this.joinAuto, this, 1, 0, 2, 0);
+		var joinSelectButton = game.add.button(x + 220, 180, 'joinSelectButton', this.showLobbyCodeWindow, this, 1, 0, 2, 0);
 		
-		var hostPublicButton = game.add.button(x, 470, 'hostPublicButton', this.hostPublic, this, 1, 0, 2, 0);
-		var hostPrivateButton = game.add.button(x + 220, 470, 'hostPrivateButton', this.hostPrivate, this, 1, 0, 2, 0);
+		var hostPublicButton = game.add.button(x, 530, 'hostPublicButton', this.hostPublic, this, 1, 0, 2, 0);
+		var hostPrivateButton = game.add.button(x + 220, 530, 'hostPrivateButton', this.hostPrivate, this, 1, 0, 2, 0);
 		//joinButton.inputEnabled = true;
 		//joinButton.input.useHandCursor = true;
 		
@@ -37,7 +37,6 @@ var mainMenuState = {
 	},
 	
 	joinSelect: function(lobbyCode){
-		$("#lobbyCode").css("visibility", "hidden");
 		console.log("Joining lobby using code " + lobbyCode + ".");
 		socket.emit("clientJoinSelect", {lobbyCode : lobbyCode});
 	},

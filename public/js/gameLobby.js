@@ -6,13 +6,23 @@ var gameLobbyState = {
 	started: false,
 	p2world: new p2.World(),
 	
+	// Labels are fixed, texts are updated with live values
+	privacyLabel: null,
+	privacyText: null,
+	hostLabel: null,
+	hostText: null,
+	codeLabel: null,
+	codeText: null,
+	
 	preload: function(){
 		game.sound.stopAll();
 	},
 	
 	create: function(){
 		game.stage.disableVisibilityChange = true;
-		var loginText = game.add.text(128, 72, "Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
+		//var loginText = game.add.text(128, 72, "Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
+		
+		this.addSideMenu();
 		
 		this.p2world.gravity = [0, -10];
 		
@@ -30,6 +40,19 @@ var gameLobbyState = {
 		
 		var bgm = game.add.audio('bgmLobby', 0.20, true);
 		bgm.play();
+	},
+	
+	addSideMenu: function(){
+		privacyLabel = game.add.text(1000, 50, "Lobby:", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		hostLabel = game.add.text(1000, 120, "Host:", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		codeLabel = game.add.text(1000, 190, "Passcode:", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		
+		privacyText = game.add.text(1250, 50, "[ Lobby ]", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		hostText = game.add.text(1250, 120, "[ Host ]", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		codeText = game.add.text(1250, 240, "[ Code ]", { font: '40px Bubblegum Sans', fill: '#ddddff'});
+		privacyText.anchor.setTo(1, 0);
+		hostText.anchor.setTo(1, 0);
+		codeText.anchor.setTo(1, 0);
 	},
 	
 	addWalls: function(){
@@ -111,6 +134,12 @@ var gameLobbyState = {
 			Creating objects that currently have not been spawned on the client
 	*/
 	updateState: function(serverState){
+		// Update lobby info
+		privacyText.text = (serverState.privateLobby ? "Private" : "Public");
+		hostText.text = serverState.hostName;
+		codeText.text = serverState.lobbyCode;
+		
+		// Update entities
 		for(var index in serverState.entities){
 			var ent = serverState.entities[index];
 			

@@ -62,6 +62,7 @@ var lobbyCodeSubmit = function(){
 }
 
 function enterLobby(){
+	$("#lobbyCode").css("visibility", "hidden");
 	game.state.start('gameLobby');
 };
 
