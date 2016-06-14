@@ -13,6 +13,7 @@ var gameLobbyState = {
 	hostText: null,
 	codeLabel: null,
 	codeText: null,
+	timerLabel: null,
 	
 	preload: function(){
 		game.sound.stopAll();
@@ -53,6 +54,33 @@ var gameLobbyState = {
 		privacyText.anchor.setTo(1, 0);
 		hostText.anchor.setTo(1, 0);
 		codeText.anchor.setTo(1, 0);
+		
+		// TODO: only the host should be able to use this
+		var gameStartButton = game.add.button(1020, 320, 'joinSelectButton', this.emitStartGame, this, 1, 0, 2, 0);
+	},
+	
+	emitStartGame: function(){
+		// Tell the server
+		// TODO: Could send which game to start here, when game choice is implemented
+		socket.emit("startGame");
+	},
+	
+	startGame: function(){
+		
+		
+		// Server: Wait about 5 seconds
+		// Client: Do a countdown from 5
+		timerLabel = game.add.text(490, 150, "5", { font: '80px Bubblegum Sans', fill: '#ddddff'});
+		timerLabel.anchor.setTo(0.5,0.5);
+		game.time.events.add(Phaser.Timer.SECOND * 1, function(){ timerLabel.text = "4"}, this);
+		game.time.events.add(Phaser.Timer.SECOND * 2, function(){ timerLabel.text = "3"}, this);
+		game.time.events.add(Phaser.Timer.SECOND * 3, function(){ timerLabel.text = "2"}, this);
+		game.time.events.add(Phaser.Timer.SECOND * 4, function(){ timerLabel.text = "1"}, this);
+		game.time.events.add(Phaser.Timer.SECOND * 5, function(){ timerLabel.text = "0"}, this);
+		
+		// Server: Set this lobby's currentGame to a new minigame (the game object has a reference back to parentLobby)
+		// Client: Set the game state to the minigame indicated by the server.
+		
 	},
 	
 	addWalls: function(){
@@ -93,13 +121,37 @@ var gameLobbyState = {
 		// move controllable dragons
 		for(var entID in this.entities){
 			ent = this.entities[entID];
-			if(ent.controllable && ent.type == "Dragon"){
-				if(this.keyPoll["KeyA"] != this.keyPoll["KeyD"]){
-					ent.body.velocity[0] = this.keyPoll["KeyD"] ? 10 : -10;
+			if(ent.type == "Dragon"){
+				if(ent.controllable){
+					if(this.keyPoll["KeyA"] != this.keyPoll["KeyD"]){
+						ent.body.velocity[0] = this.keyPoll["KeyD"] ? 10 : -10;
+					}
+				}
+				// Control the dragon animations
+				if(ent.sprite.animations.currentAnim.isPlaying){
+					if(Math.abs(ent.body.velocity[0]) < 0.1){
+						ent.sprite.animations.stop();
+					}
+				}else if(ent.body.velocity[0] != 0){
+					ent.sprite.animations.play('walkright', 5, true, false);
+				}
+				//ent.sprite.animations.play('walkright', true, false);
+				
+				if(ent.body.velocity[0] > 0.1){
+					
+					ent.sprite.scale.x = .20;
+					
+				}else if(ent.body.velocity[0] < -0.1){
+					
+					ent.sprite.scale.x = -.20;
+					
 				}
 			}
 			
 			ent.body.velocity[0] *= 0.80;
+			
+			
+			
 			
 			if(ent.body.angle > Math.PI / 12){
 				ent.body.angle = Math.PI / 12;
@@ -156,10 +208,11 @@ var gameLobbyState = {
 		
 		switch(entData.type){
 			case "Dragon":
-				var dragonSprite = this.game.add.sprite(20 * entData.x, -20 * entData.y, 'testDragon');
-				dragonSprite.anchor.setTo(0.5, 0.5);
-				dragonSprite.animations.add('walkleft', [3,4,5], 5, true);
-				dragonSprite.animations.add('walkright', [0,1,2], 5, true);
+				var dragonSprite = this.game.add.sprite(20 * entData.x, -20 * entData.y, 'dragonGreen');
+				dragonSprite.anchor.setTo(0.5, 0.6);
+				dragonSprite.scale.x = 0.20;
+				dragonSprite.scale.y = 0.20;
+				dragonSprite.animations.add('walkright', [0,1], 5, true);
 				dragonSprite.animations.play('walkright');
 				
 				var dragonName = game.add.text(entData.x , entData.y - 50, entData.name, { font: '35px Bubblegum Sans', fill: '#ffaaaa'});
@@ -170,7 +223,7 @@ var gameLobbyState = {
 					mass: 100,
 					position: [entData.x , entData.y],
 					angle: 0,
-					velocity: [0, 0],
+					velocity: [entData.dx, entData.dy],
 					angularVelocity: 0
 				});
 				dragonBody.addShape(new p2.Box({width: 10, height:5}));
@@ -187,6 +240,8 @@ var gameLobbyState = {
 		
 		currentEnt.body.position[0] = entData.x;
 		currentEnt.body.position[1] = entData.y;
+		currentEnt.body.velocity[0] = entData.dx;
+		currentEnt.body.velocity[1] = entData.dy;
 		currentEnt.body.angle = entData.angle;
 	},
 	

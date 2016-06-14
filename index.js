@@ -158,6 +158,13 @@ io.on('connection', function (socket) {
 	});
 	
 	/*
+		A client is telling the lobby to start up a game.
+	*/
+	socket.on('startGame', function(){
+		socket.gameLobby.startGame();
+	});
+	
+	/*
 		Key events from the client (passes them to lobbies).
 	*/
 	socket.on('keyDown', function(data){

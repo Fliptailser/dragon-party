@@ -9,6 +9,7 @@ socket.on("enterLobby", enterLobby);
 socket.on("removeEntity", removeEntity);
 socket.on("lobbyUpdate", lobbyUpdate);
 socket.on("loginSuccessful", loginSuccessful);
+socket.on("startGame", startGame);
 	
 var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 var playerData = null;
@@ -26,6 +27,7 @@ function preload() {
 	game.load.audio('bgm_wakeup', 'sounds/bgm_wakeup.wav');
 	game.load.audio('bgmLobby', 'sounds/bgm_lobby.wav');
 	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
+	game.load.spritesheet('dragonGreen', 'assets/dragon_green.png', 1500, 760);
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
 	
@@ -79,6 +81,12 @@ function loginSuccessful(data){
 function lobbyUpdate(data){
 	if(game.state.getCurrentState().key == 'gameLobby' && game.state.getCurrentState().started){
 		gameLobbyState.updateState(data);
+	}
+}
+
+function startGame(){
+	if(game.state.getCurrentState().key == 'gameLobby'){
+		gameLobbyState.startGame();
 	}
 }
 
