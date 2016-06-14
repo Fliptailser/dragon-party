@@ -1,4 +1,6 @@
-node_modules
+node_modules/express
+node_modules/p2
+node_modules/socket.io
 npm-debug.log
 .DS_Store
 /*.env
