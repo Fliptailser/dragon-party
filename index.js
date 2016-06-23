@@ -20,10 +20,10 @@ var io = require('socket.io').listen(server);
 // Load up p2 physics engine
 var p2 = require('p2');
 
+// Load game classes
 var Lobby = require('lobby.js');
 var Player = require('player.js');
-// Reduce the logging output of Socket.IO
-// io.set('log level',1);
+var DragRace = require('dragRace.js');
 
 // Maps lobby codes to lobby objects.
 var publicLobbies = {};
@@ -80,7 +80,7 @@ io.on('connection', function (socket) {
 		var bestLobby = null;
 		for(var code in publicLobbies){
 			// TODO: prioritization
-			if(bestLobby == null || true){
+			if((bestLobby == null || true) && !publicLobbies[code].paused){
 				bestLobby = publicLobbies[code];
 			}
 		}
@@ -114,9 +114,9 @@ io.on('connection', function (socket) {
 	socket.on('clientJoinSelect', function(data){
 		var code = data.lobbyCode.toUpperCase();
 		var lobby = null;
-		if(code in publicLobbies){
+		if(code in publicLobbies  && !publicLobbies[code].paused){
 			lobby = publicLobbies[code];
-		}else if(code in privateLobbies){
+		}else if(code in privateLobbies && !privateLobbies[code].paused){
 			lobby = privateLobbies[code];
 		}else{
 			console.log("Invalid code " + data.lobbyCode);
@@ -161,7 +161,25 @@ io.on('connection', function (socket) {
 		A client is telling the lobby to start up a game.
 	*/
 	socket.on('startGame', function(){
-		socket.gameLobby.startGame();
+		if(!socket.gameLobby.currentGame){
+			
+			for(var p in socket.gameLobby.players){
+				socket.gameLobby.players[p].points = 0;
+			}
+			
+			// TODO: a way to set this.
+			socket.gameLobby.gamesRemaining = 2;
+			socket.gameLobby.startGame();
+		}
+	});
+	
+	/*
+		A client has made it past instructions/intro for a game and is ready to start. This helps sync clients after load work.
+	*/
+	socket.on('gameReady', function(){
+		if(socket.gameLobby.currentGame){
+			socket.gameLobby.currentGame.playerReady(socket.id);
+		}
 	});
 	
 	/*

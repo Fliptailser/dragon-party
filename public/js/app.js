@@ -7,9 +7,12 @@
 var socket = io();
 socket.on("enterLobby", enterLobby);
 socket.on("removeEntity", removeEntity);
-socket.on("lobbyUpdate", lobbyUpdate);
+socket.on("gameUpdate", gameUpdate);
 socket.on("loginSuccessful", loginSuccessful);
-socket.on("startGame", startGame);
+socket.on("launchGame", launchGame);
+socket.on("go", gameGo);
+socket.on("gameEnd", gameEnd);
+socket.on("showResults", showResults);
 	
 var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 var playerData = null;
@@ -26,10 +29,19 @@ function preload() {
 	game.load.spritesheet('hostPrivateButton', 'assets/privatebutton.png', 200, 60);
 	game.load.audio('bgm_wakeup', 'sounds/bgm_wakeup.wav');
 	game.load.audio('bgmLobby', 'sounds/bgm_lobby.wav');
+	game.load.audio('fanfare', 'sounds/fanfare.wav');
+	game.load.audio('amazed', 'sounds/amazed.wav');
+	game.load.audio('sportsCrowd', 'sounds/sports_crowd.mp3');
 	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
+	game.load.image('track', 'assets/track.png');
+	game.load.image('arrow', 'assets/arrow.png');
+	game.load.image('skyTrack', 'assets/skytrack.png');
+	game.load.image('finishLine', 'assets/finish_line.png');
+	game.load.image('hurdle', 'assets/hurdle.png');
 	game.load.spritesheet('dragonGreen', 'assets/dragon_green.png', 1500, 760);
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
+	game.load.image('sky', 'assets/sky.png');
 	
 	console.log("Load complete");
 }
@@ -38,7 +50,9 @@ function create() {
 	game.state.add('login', loginState);
 	game.state.add('mainMenu', mainMenuState);
 	game.state.add('gameLobby', gameLobbyState);
-
+	game.state.add('gameDragRace', gameDragRaceState);
+	game.state.add('results', resultsState);
+	
 	game.input.keyboard.addCallbacks(this, gameKeyDown, gameKeyUp, gameKeyPress);
 	
 	game.state.start('login');
@@ -78,16 +92,40 @@ function loginSuccessful(data){
 	}
 }
 
-function lobbyUpdate(data){
-	if(game.state.getCurrentState().key == 'gameLobby' && game.state.getCurrentState().started){
-		gameLobbyState.updateState(data);
+function gameUpdate(data){
+	switch(game.state.getCurrentState().key){
+		case "gameLobby":
+			if(game.state.getCurrentState().started){
+				gameLobbyState.updateState(data);
+			}
+			break;
+		case "gameDragRace":
+			game.state.getCurrentState().serverUpdate(data);
+			break;
 	}
 }
 
-function startGame(){
-	if(game.state.getCurrentState().key == 'gameLobby'){
-		gameLobbyState.startGame();
+function launchGame(data){
+	
+	switch(data.gameType){
+		case "dragRace":
+			game.state.start('gameDragRace', true, false, data.gameData);
+			break;
+		
 	}
+	
+}
+
+function gameEnd(data){
+	switch(game.state.getCurrentState().key){
+		case "gameDragRace":
+			game.state.getCurrentState().gameEnd(data);
+			break;
+	}
+}
+
+function showResults(data){
+	game.state.start('results', true, false, data);
 }
 
 function removeEntity(entID){
@@ -96,15 +134,29 @@ function removeEntity(entID){
 	}
 };
 
+function gameGo(){
+	switch(game.state.getCurrentState().key){
+		case "gameDragRace":
+			game.state.getCurrentState().go();
+			break;
+	}
+}
+
 function gameKeyDown(keyEvent){
-	if(game.state.getCurrentState().key == 'gameLobby'){
-		gameLobbyState.gameKeyDown(keyEvent);
+	switch(game.state.getCurrentState().key){
+		case "gameLobby":
+		case "gameDragRace":
+			game.state.getCurrentState().keyDown(keyEvent);
+			break;
 	}
 }
 
 function gameKeyUp(keyEvent){
-	if(game.state.getCurrentState().key == 'gameLobby'){
-		gameLobbyState.gameKeyUp(keyEvent);
+	switch(game.state.getCurrentState().key){
+		case "gameLobby":
+		case "gameDragRace":
+			game.state.getCurrentState().keyUp(keyEvent);
+			break;
 	}
 }
 

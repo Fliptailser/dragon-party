@@ -4,3 +4,4 @@ node_modules/socket.io
 npm-debug.log
 .DS_Store
 /*.env
+notes.txt

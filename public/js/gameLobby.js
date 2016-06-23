@@ -20,6 +20,23 @@ var gameLobbyState = {
 	},
 	
 	create: function(){
+		game.sound.stopAll();
+		this.entities = {};
+		this.keyPoll = {};
+		this.started = false;
+		this.p2world = new p2.World();
+		
+		// Labels are fixed; texts are updated with live values
+		this.privacyLabel = null;
+		this.privacyText = null;
+		this.hostLabel = null;
+		this.hostText = null;
+		this.codeLabel = null;
+		this.codeText = null;
+		this.timerLabel = null;
+		
+		
+		
 		game.stage.disableVisibilityChange = true;
 		//var loginText = game.add.text(128, 72, "Lobby", { font: '100px Bubblegum Sans', fill: '#ddddff'});
 		
@@ -56,14 +73,10 @@ var gameLobbyState = {
 		codeText.anchor.setTo(1, 0);
 		
 		// TODO: only the host should be able to use this
-		var gameStartButton = game.add.button(1020, 320, 'joinSelectButton', this.emitStartGame, this, 1, 0, 2, 0);
+		var gameStartButton = game.add.button(1020, 320, 'joinSelectButton', this.startGame, this, 1, 0, 2, 0);
 	},
 	
-	emitStartGame: function(){
-		// Tell the server
-		// TODO: Could send which game to start here, when game choice is implemented
-		socket.emit("startGame");
-	},
+	
 	
 	startGame: function(){
 		
@@ -77,6 +90,11 @@ var gameLobbyState = {
 		game.time.events.add(Phaser.Timer.SECOND * 3, function(){ timerLabel.text = "2"}, this);
 		game.time.events.add(Phaser.Timer.SECOND * 4, function(){ timerLabel.text = "1"}, this);
 		game.time.events.add(Phaser.Timer.SECOND * 5, function(){ timerLabel.text = "0"}, this);
+		game.time.events.add(Phaser.Timer.SECOND * 6, function(){
+			
+			socket.emit("startGame");
+			
+		}, this);
 		
 		// Server: Set this lobby's currentGame to a new minigame (the game object has a reference back to parentLobby)
 		// Client: Set the game state to the minigame indicated by the server.
@@ -118,6 +136,7 @@ var gameLobbyState = {
 	},
 	
 	update: function(){
+		
 		// move controllable dragons
 		for(var entID in this.entities){
 			ent = this.entities[entID];
@@ -178,6 +197,7 @@ var gameLobbyState = {
 			}
 			
 		}
+		
 	},
 	
 	/*
@@ -208,11 +228,11 @@ var gameLobbyState = {
 		
 		switch(entData.type){
 			case "Dragon":
-				var dragonSprite = this.game.add.sprite(20 * entData.x, -20 * entData.y, 'dragonGreen');
+				var dragonSprite = game.add.sprite(20 * entData.x, -20 * entData.y, 'dragonGreen');
 				dragonSprite.anchor.setTo(0.5, 0.6);
 				dragonSprite.scale.x = 0.20;
 				dragonSprite.scale.y = 0.20;
-				dragonSprite.animations.add('walkright', [0,1], 5, true);
+				dragonSprite.animations.add('walkright', [0,1,2,3], 5, true);
 				dragonSprite.animations.play('walkright');
 				
 				var dragonName = game.add.text(entData.x , entData.y - 50, entData.name, { font: '35px Bubblegum Sans', fill: '#ffaaaa'});
@@ -254,7 +274,7 @@ var gameLobbyState = {
 		delete this.entities[entID];
 	},
 	
-	gameKeyDown: function(keyEvent){
+	keyDown: function(keyEvent){
 		this.keyPoll[keyEvent.code] = true;
 		if(["KeyA", "KeyD", "Space"].indexOf(keyEvent.code) != -1){
 			socket.emit("keyDown", {keyCode : keyEvent.code});
@@ -270,7 +290,7 @@ var gameLobbyState = {
 		}
 	},
 	
-	gameKeyUp: function(keyEvent){
+	keyUp: function(keyEvent){
 		this.keyPoll[keyEvent.code] = false;
 		if(["KeyA", "KeyD", "Space"].indexOf(keyEvent.code) != -1){
 			socket.emit("keyUp", {keyCode : keyEvent.code});
