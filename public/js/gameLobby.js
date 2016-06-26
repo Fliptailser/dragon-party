@@ -158,11 +158,11 @@ var gameLobbyState = {
 				
 				if(ent.body.velocity[0] > 0.1){
 					
-					ent.sprite.scale.x = .20;
+					ent.sprite.scale.x = .5;
 					
 				}else if(ent.body.velocity[0] < -0.1){
 					
-					ent.sprite.scale.x = -.20;
+					ent.sprite.scale.x = -.5;
 					
 				}
 			}
@@ -228,11 +228,11 @@ var gameLobbyState = {
 		
 		switch(entData.type){
 			case "Dragon":
-				var dragonSprite = game.add.sprite(20 * entData.x, -20 * entData.y, 'dragonGreen');
-				dragonSprite.anchor.setTo(0.5, 0.6);
-				dragonSprite.scale.x = 0.20;
-				dragonSprite.scale.y = 0.20;
-				dragonSprite.animations.add('walkright', [0,1,2,3], 5, true);
+				var dragonSprite = game.add.sprite(20 * entData.x, -20 * entData.y, 'bhiran');
+				dragonSprite.anchor.setTo(0.5, 0.65);
+				dragonSprite.scale.x = 0.50;
+				dragonSprite.scale.y = 0.50;
+				dragonSprite.animations.add('walkright', [0,1,2,3,4,5], 5, true);
 				dragonSprite.animations.play('walkright');
 				
 				var dragonName = game.add.text(entData.x , entData.y - 50, entData.name, { font: '35px Bubblegum Sans', fill: '#ffaaaa'});

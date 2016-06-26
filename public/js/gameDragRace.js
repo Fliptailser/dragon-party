@@ -95,21 +95,21 @@ var gameDragRaceState = {
 		
 		this.trackLength = gameData.length;
 		
-		var dragonSprite = game.add.sprite(0, 600, 'dragonGreen', 0, midGroup);
-		dragonSprite.anchor.setTo(0.5,0.90);
-		dragonSprite.scale.x = 0.2;
-		dragonSprite.scale.y = 0.2;
-		dragonSprite.animations.add('walkright', [0,1,2,3], 8, true);
+		var dragonSprite = game.add.sprite(0, 600, 'bhiran', 0, midGroup);
+		dragonSprite.anchor.setTo(0.5,0.85);
+		dragonSprite.scale.x = 0.5;
+		dragonSprite.scale.y = 0.5;
+		dragonSprite.animations.add('walkright', [0,1,2,3,4,5], 8, true);
 		this.localDragon = {sprite: dragonSprite, name: playerData.name, jumping: false, vy: 0};
 		
 		for(var i = 0; i < gameData.dragons.length; i++){
 			var otherDragon = gameData.dragons[i];
-			var otherDragonSprite = game.add.sprite(0, 600, 'dragonGreen',0, backGroup);
-			otherDragonSprite.anchor.setTo(0.5,0.90);
-			otherDragonSprite.scale.x = 0.2;
-			otherDragonSprite.scale.y = 0.2;
+			var otherDragonSprite = game.add.sprite(0, 600, 'bhiran',0, backGroup);
+			otherDragonSprite.anchor.setTo(0.5,0.85);
+			otherDragonSprite.scale.x = 0.5;
+			otherDragonSprite.scale.y = 0.5;
 			otherDragonSprite.alpha = 0.5;
-			otherDragonSprite.animations.add('walkright', [0,1,2,3], 8, true);
+			otherDragonSprite.animations.add('walkright', [0,1,2,3,4,5], 8, true);
 			this.otherDragons.push({name: otherDragon.name, sprite: otherDragonSprite});
 		}
 		
@@ -198,6 +198,7 @@ var gameDragRaceState = {
 	},
 	
 	create: function(){
+		game.stage.disableVisibilityChange = true;
 		game.sound.stopAll();
 		game.stage.backgroundColor = '#E8AC46';
 		// Fade in from black

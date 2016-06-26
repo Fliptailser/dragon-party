@@ -15,7 +15,7 @@ var resultsState = {
 	},
 	
 	create: function(){
-		
+		game.stage.disableVisibilityChange = true;
 		game.sound.stopAll();
 		game.stage.backgroundColor = '#888CA6';
 		

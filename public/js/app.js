@@ -32,13 +32,12 @@ function preload() {
 	game.load.audio('fanfare', 'sounds/fanfare.wav');
 	game.load.audio('amazed', 'sounds/amazed.wav');
 	game.load.audio('sportsCrowd', 'sounds/sports_crowd.mp3');
-	game.load.spritesheet('testDragon', 'assets/testdragon.png', 200, 100);
+	game.load.spritesheet('bhiran', 'assets/bhiran_sheet.png', 700, 450);
 	game.load.image('track', 'assets/track.png');
 	game.load.image('arrow', 'assets/arrow.png');
 	game.load.image('skyTrack', 'assets/skytrack.png');
 	game.load.image('finishLine', 'assets/finish_line.png');
 	game.load.image('hurdle', 'assets/hurdle.png');
-	game.load.spritesheet('dragonGreen', 'assets/dragon_green.png', 1500, 760);
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
 	game.load.image('sky', 'assets/sky.png');
