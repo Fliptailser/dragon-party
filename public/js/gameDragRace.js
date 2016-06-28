@@ -69,6 +69,8 @@ var gameDragRaceState = {
 		this.trackMode =  "land";
 		
 		this.bgm =  null;
+		//this.crowd = null;
+		
 		// The nonlocal dragons send their x position.
 		this.otherDragons =  [];
 		
@@ -84,6 +86,8 @@ var gameDragRaceState = {
 		 this.frontGroup =  null;
 		
 		this.bgm = game.add.audio('amazed', 0.80, true);
+		//this.crowd = game.add.audio('sportsCrowd', 0.025, true);
+		
 		// Parse the data and prepare the obstacle objects as well as dragons
 		this.otherDragons = [];
 		
@@ -99,8 +103,9 @@ var gameDragRaceState = {
 		dragonSprite.anchor.setTo(0.5,0.85);
 		dragonSprite.scale.x = 0.5;
 		dragonSprite.scale.y = 0.5;
+		dragonSprite.visible = false;
 		dragonSprite.animations.add('walkright', [0,1,2,3,4,5], 8, true);
-		this.localDragon = {sprite: dragonSprite, name: playerData.name, jumping: false, vy: 0};
+		this.localDragon = {sprite: dragonSprite, name: playerData.name, jumping: false, boosting: false, vy: 0};
 		
 		for(var i = 0; i < gameData.dragons.length; i++){
 			var otherDragon = gameData.dragons[i];
@@ -109,14 +114,20 @@ var gameDragRaceState = {
 			otherDragonSprite.scale.x = 0.5;
 			otherDragonSprite.scale.y = 0.5;
 			otherDragonSprite.alpha = 0.5;
+			otherDragonSprite.visible = false;
 			otherDragonSprite.animations.add('walkright', [0,1,2,3,4,5], 8, true);
-			this.otherDragons.push({name: otherDragon.name, sprite: otherDragonSprite});
+			this.otherDragons.push({name: otherDragon.name, sprite: otherDragonSprite, vx: 0, vy: 0});
 		}
 		
 		for(var i = -1000; i <= this.trackLength + 1000; i += 1000){
 			var skySection = game.add.sprite(i, -250, 'sky', 0, backdropGroup);
 			skySection.visible = false;
 			this.track.push({type: "skyBackdrop", sprite: skySection, parallax: 0.5});
+			
+			var cloud = game.add.sprite(i + Math.random() * 1000, 400 - Math.random()*600, 'cloud', 0, backGroup);
+			cloud.visible = false;
+			this.track.push({type: 'cloud', sprite:cloud, parallax: 0.5});
+			
 		}
 		
 		// Set track and markers
@@ -192,6 +203,20 @@ var gameDragRaceState = {
 					hurdleSprite.anchor.setTo(0.5,1.0);
 					this.track.push({type: obstacle.type, sprite: hurdleSprite, triggered: false});
 					break;
+					
+				case "ring":
+					var backSprite = game.add.sprite(obstacle.x, obstacle.y, 'ringBack', 0, backGroup);
+					var frontSprite = game.add.sprite(obstacle.x,  obstacle.y, 'ringFront', 0, frontGroup);
+					backSprite.visible = false;
+					frontSprite.visible = false;
+					backSprite.scale.y = 0.5;
+					backSprite.scale.x = 0.5;
+					backSprite.anchor.setTo(0.5,0.5);
+					frontSprite.scale.y = 0.5;
+					frontSprite.scale.x = 0.5;
+					frontSprite.anchor.setTo(0.5,0.5);
+					this.track.push({type: obstacle.type, backSprite: backSprite, frontSprite: frontSprite, triggered: false});
+					break;
 			}
 		}
 		
@@ -201,14 +226,14 @@ var gameDragRaceState = {
 		game.stage.disableVisibilityChange = true;
 		game.sound.stopAll();
 		game.stage.backgroundColor = '#E8AC46';
+		//this.crowd.play();
 		// Fade in from black
 		// Info screen: Splash page with instructions for the minigame. "Game starts in 10" text/timer along the bottom.
 		var gameTitleLabel = game.add.text(100, 50, "Drag Race", { font: '80px Bubblegum Sans', fill: '#ddddff'});
 		var instruction1 = game.add.text(200, 150, "Race to the finish and dodge the obstacles!", { font: '50px Bubblegum Sans', fill: '#ddddff'});
 		var instructionTimerText = game.add.text(900, 650, "Game starts in 10", { font: '50px Bubblegum Sans', fill: '#ddddff'});
 		game.camera.flash(0x000000, 1000);
-		var crowd = game.add.audio('sportsCrowd', 0.025, true);
-		crowd.play();
+		
 		// TODO: this is off for faster testing
 		// game.time.events.add(Phaser.Timer.SECOND * 1, function(){ instructionTimerText.text = "Game starts in 9";}, this);
 		// game.time.events.add(Phaser.Timer.SECOND * 2, function(){ instructionTimerText.text = "Game starts in 8";}, this);
@@ -267,6 +292,8 @@ var gameDragRaceState = {
 	},
 	
 	gameEnd: function(data){
+		//this.crowd.stop();
+		
 		game.time.events.add(Phaser.Timer.SECOND * 1, function(){
 			game.sound.play('fanfare', 0.60);
 			game.add.text(game.camera.x + game.camera.width/2 + 50, game.camera.y + 150, "You placed " + data.clientRank + ordinalSuffix(data.clientRank) + "!", { font: '80px Bubblegum Sans', fill: '#ddddff'});
@@ -323,7 +350,18 @@ var gameDragRaceState = {
 			if(this.track[index].sprite){
 				this.track[index].sprite.visible = true;
 			}
+			
+			if(this.track[index].backSprite){
+				this.track[index].backSprite.visible = true;
+				this.track[index].frontSprite.visible = true;
+			}
 		}
+		
+		for(var index in this.otherDragons){
+			this.otherDragons[index].sprite.visible = true;
+		}
+		
+		this.localDragon.sprite.visible = true;
 	},
 	
 	trackCamera: function(){
@@ -344,11 +382,14 @@ var gameDragRaceState = {
 		if(gameState.type != "lobby"){
 			this.localDragon.sprite.x = gameState.clientDragon.x;
 			this.localDragon.sprite.y = gameState.clientDragon.y;
+			this.trackSpeed = gameState.clientDragon.vx;
 			
 			for(var i = 0; i < this.otherDragons.length; i++){
 				var other = this.otherDragons[i].sprite;
 				other.x = gameState.otherDragons[i].x;
 				other.y = gameState.otherDragons[i].y;
+				this.otherDragons[i].vx = gameState.otherDragons[i].vx;
+				this.otherDragons[i].vy = gameState.otherDragons[i].vy;
 			}
 		}
 	},
@@ -356,7 +397,7 @@ var gameDragRaceState = {
 	update: function(){
 		switch(this.subState){
 			case "Racing":
-				this.localDragon.sprite.animations.play('walkright');
+				
 				this.trackCamera();
 				
 				switch(this.trackMode){
@@ -404,8 +445,17 @@ var gameDragRaceState = {
 				
 				
 				// Move obstacles leftward and check behavior
-				this.scroll();
-				this.trackSpeed = Math.min(10, this.trackSpeed + 0.02);
+				this.moveDragons();
+				this.parallax();
+				if(this.localDragon.boosting){
+					this.trackSpeed += 0.05;
+					this.localDragon.boostTimer --;
+					if(this.localDragon.boostTimer == 0){
+						this.localDragon.boosting = false;
+					}
+				}else{
+					this.trackSpeed = Math.min(10, this.trackSpeed + 0.04);
+				}
 				this.checkTrack();
 				break;
 			case "Waiting":
@@ -423,19 +473,45 @@ var gameDragRaceState = {
 			
 				// Idle until the server tells the client who won.
 				this.bgm.stop();
-				this.scroll();
-				this.trackSpeed -= 0.1;
-				if(this.trackSpeed <= 0){
-					this.trackSpeed = 0;
-					this.localDragon.sprite.animations.stop();
-				}
+				this.moveDragons();
+				this.trackSpeed = Math.max(0, this.trackSpeed - 0.1);
+				
 				break;
 			
 		}
+		
+		this.animations();
 	},
 	
-	scroll: function(){
+	moveDragons: function(){
 		this.localDragon.sprite.x += this.trackSpeed;
+		
+		for(var i = 0; i < this.otherDragons.length; i++){
+			this.otherDragons[i].sprite.x += this.otherDragons[i].vx;
+			this.otherDragons[i].sprite.y += this.otherDragons[i].vy;
+		}
+	},
+	
+	animations: function(){
+		
+		if(this.subState != "Pre" && this.trackSpeed > 0){
+			this.localDragon.sprite.animations.play('walkright');
+		}else{
+			this.localDragon.sprite.animations.stop();
+		}
+		
+		
+		for (var i = 0; i < this.otherDragons.length; i++){
+			var other = this.otherDragons[i];
+			if(this.subState != "Pre" &&  other.vx > 0){
+				other.sprite.animations.play('walkright');
+			}else{
+				other.sprite.animations.stop();
+			}
+		}
+	},
+	
+	parallax: function(){
 		for(var index in this.track){
 			var trackEnt = this.track[index];
 			if(trackEnt.parallax && trackEnt.sprite){
@@ -463,8 +539,8 @@ var gameDragRaceState = {
 						// Check positions to see if local dragon triggers this hurdle.
 						
 						var hurdle = trackEnt.sprite;
-						var xCollision = dragon.x > hurdle.x - hurdle.width/2 - (dragon.width * 0.60)/2 && dragon.x < hurdle.x + hurdle.width/2 + (dragon.width*0.60)/2;
-						var yCollision = dragon.y > hurdle.y - hurdle.height && dragon.y < hurdle.y + dragon.height;
+						var xCollision = dragon.x > hurdle.x - hurdle.width/2 - (dragon.width * 0.50)/2 && dragon.x < hurdle.x + hurdle.width/2 + (dragon.width*0.50)/2;
+						var yCollision = dragon.y > hurdle.y - hurdle.height && dragon.y < hurdle.y + (dragon.height * 0.75);
 						if(xCollision && yCollision){
 							trackEnt.triggered = true;
 							hurdle.angle = 90;
@@ -485,6 +561,15 @@ var gameDragRaceState = {
 					if(!trackEnt.triggered && dragon.x >= trackEnt.x + 200){
 						this.trackMode = "land";
 						trackEnt.triggered = true;
+					}
+					break;
+				case "ring":
+					if(!trackEnt.triggered && dragon.x >= trackEnt.x - 25 && Math.abs(dragon.y - dragon.height/2 - trackEnt.y) <= 125){
+						trackEnt.triggered = true;
+						trackEnt.backSprite.alpha = 0.5;
+						trackEnt.frontSprite.alpha = 0.5;
+						this.localDragon.boosting = true;
+						this.localDragon.boostTimer = 60;
 					}
 					break;
 			}

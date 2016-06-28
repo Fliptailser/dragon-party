@@ -37,10 +37,13 @@ function preload() {
 	game.load.image('arrow', 'assets/arrow.png');
 	game.load.image('skyTrack', 'assets/skytrack.png');
 	game.load.image('finishLine', 'assets/finish_line.png');
+	game.load.image('ringBack', 'assets/ring_back.png');
+	game.load.image('ringFront', 'assets/ring_front.png');
 	game.load.image('hurdle', 'assets/hurdle.png');
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
 	game.load.image('sky', 'assets/sky.png');
+	game.load.image('cloud', 'assets/cloud.png');
 	
 	console.log("Load complete");
 }
