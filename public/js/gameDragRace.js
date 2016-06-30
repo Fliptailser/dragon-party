@@ -215,7 +215,7 @@ var gameDragRaceState = {
 					frontSprite.scale.y = 0.5;
 					frontSprite.scale.x = 0.5;
 					frontSprite.anchor.setTo(0.5,0.5);
-					this.track.push({type: obstacle.type, backSprite: backSprite, frontSprite: frontSprite, triggered: false});
+					this.track.push({type: obstacle.type, x: obstacle.x, y: obstacle.y, backSprite: backSprite, frontSprite: frontSprite, triggered: false});
 					break;
 			}
 		}
@@ -397,7 +397,6 @@ var gameDragRaceState = {
 	update: function(){
 		switch(this.subState){
 			case "Racing":
-				
 				this.trackCamera();
 				
 				switch(this.trackMode){
@@ -448,7 +447,7 @@ var gameDragRaceState = {
 				this.moveDragons();
 				this.parallax();
 				if(this.localDragon.boosting){
-					this.trackSpeed += 0.05;
+					this.trackSpeed += 0.20;
 					this.localDragon.boostTimer --;
 					if(this.localDragon.boostTimer == 0){
 						this.localDragon.boosting = false;
@@ -539,8 +538,8 @@ var gameDragRaceState = {
 						// Check positions to see if local dragon triggers this hurdle.
 						
 						var hurdle = trackEnt.sprite;
-						var xCollision = dragon.x > hurdle.x - hurdle.width/2 - (dragon.width * 0.50)/2 && dragon.x < hurdle.x + hurdle.width/2 + (dragon.width*0.50)/2;
-						var yCollision = dragon.y > hurdle.y - hurdle.height && dragon.y < hurdle.y + (dragon.height * 0.75);
+						var xCollision = dragon.x > hurdle.x - hurdle.width/2 - (dragon.width * 0.50)/2 && dragon.x < hurdle.x + hurdle.width/2 + (dragon.width*0.30)/2;
+						var yCollision = dragon.y > hurdle.y - hurdle.height + (dragon.height * 0.2) && dragon.y < hurdle.y + (dragon.height * 0.75);
 						if(xCollision && yCollision){
 							trackEnt.triggered = true;
 							hurdle.angle = 90;
