@@ -40,10 +40,21 @@ function preload() {
 	game.load.image('ringBack', 'assets/ring_back.png');
 	game.load.image('ringFront', 'assets/ring_front.png');
 	game.load.image('hurdle', 'assets/hurdle.png');
+	
 	game.load.image('floor', 'assets/floor.png');
 	game.load.image('wall', 'assets/wall.png');
 	game.load.image('sky', 'assets/sky.png');
 	game.load.image('cloud', 'assets/cloud.png');
+	
+	game.load.image('snakeBoardSquare', 'assets/snake_tile.png');
+	game.load.image('snakeHead', 'assets/snake_head.png');
+	game.load.image('snakeBody', 'assets/snake_body.png');
+	game.load.image('snakeSplash', 'assets/snake_splash.png');
+	game.load.image('snakeFood', 'assets/snake_food.png');
+	game.load.spritesheet('snakeGrass', 'assets/snake_grass_tile.png', 50, 50);
+	game.load.audio('snakeIntro', 'sounds/snake_intro.wav');
+	game.load.audio('snake', 'sounds/snake.wav');
+	game.load.audio('snakeOutro', 'sounds/snake_outro.wav');
 	
 	console.log("Load complete");
 }
@@ -53,6 +64,7 @@ function create() {
 	game.state.add('mainMenu', mainMenuState);
 	game.state.add('gameLobby', gameLobbyState);
 	game.state.add('gameDragRace', gameDragRaceState);
+	game.state.add('gameSnake', gameSnakeState);
 	game.state.add('results', resultsState);
 	
 	game.input.keyboard.addCallbacks(this, gameKeyDown, gameKeyUp, gameKeyPress);
@@ -102,6 +114,7 @@ function gameUpdate(data){
 			}
 			break;
 		case "gameDragRace":
+		case "gameSnake":
 			game.state.getCurrentState().serverUpdate(data);
 			break;
 	}
@@ -113,7 +126,9 @@ function launchGame(data){
 		case "dragRace":
 			game.state.start('gameDragRace', true, false, data.gameData);
 			break;
-		
+		case "snake":
+			game.state.start('gameSnake', true, false, data.gameData);
+			break;
 	}
 	
 }
@@ -121,6 +136,7 @@ function launchGame(data){
 function gameEnd(data){
 	switch(game.state.getCurrentState().key){
 		case "gameDragRace":
+		case "gameSnake":
 			game.state.getCurrentState().gameEnd(data);
 			break;
 	}
@@ -148,6 +164,7 @@ function gameKeyDown(keyEvent){
 	switch(game.state.getCurrentState().key){
 		case "gameLobby":
 		case "gameDragRace":
+		case "gameSnake":
 			game.state.getCurrentState().keyDown(keyEvent);
 			break;
 	}
@@ -157,6 +174,7 @@ function gameKeyUp(keyEvent){
 	switch(game.state.getCurrentState().key){
 		case "gameLobby":
 		case "gameDragRace":
+		case "gameSnake":
 			game.state.getCurrentState().keyUp(keyEvent);
 			break;
 	}
