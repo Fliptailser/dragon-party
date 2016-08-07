@@ -75,8 +75,6 @@ var gameSnakeState = {
 	
 	// Update game data. Occurs asynchronously.
 	// Audio and visuals should update in the client-side loop, which is synced.
-	playhead: 0,
-	
 	
 	serverUpdate: function(gameState){
 		if(gameState.type != "lobby"){
@@ -90,11 +88,11 @@ var gameSnakeState = {
 			
 			if(this.state == "running"){
 				// Set up the next beat of music to play
-				this.bgms[this.speed].addMarker('' + this.playhead, this.playhead, this.speed / 12);
-				this.bgms[this.speed].play('' + this.playhead);
-				this.playhead += this.speed / 12;
-				if(this.playhead >= this.bgms[this.speed].totalDuration){
-					this.playhead = 0;
+				this.bgms[this.speed].addMarker('' + gameState.playhead, gameState.playhead, this.speed / 12);
+				this.bgms[this.speed].play('' + gameState.playhead);
+				gameState.playhead += this.speed / 12;
+				if(gameState.playhead >= this.bgms[this.speed].totalDuration){
+					gameState.playhead = 0;
 					// Switch the BGM.
 				}
 				
@@ -131,9 +129,12 @@ var gameSnakeState = {
 		// Let snake collision checking happen after snake hitboxes update
 		// Put highlight squares behind each snake sprite (color determined by snake's index)
 		// Better snake sprites (code for the body segments to tell which sprite to use, straight or corner, and which rotation)
+		//	Multiple frames for each body sprite, to enhance slithering appearance
 		// Still gotta fix the 180 suicide bug (snakes store last dir, then server != rule uses last dir, not current dir)
 		// Bug: Player list not clearing
 		// Bug: Food bug that is weird
+		// Delay between last death and end of game sequence
+		// Warning texts when the client can tell that a speedup is coming
 		
 		// For each snake:
 		for(var i = 0; i < this.snakes.length; i++){
