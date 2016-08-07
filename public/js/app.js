@@ -46,15 +46,18 @@ function preload() {
 	game.load.image('sky', 'assets/sky.png');
 	game.load.image('cloud', 'assets/cloud.png');
 	
-	game.load.image('snakeBoardSquare', 'assets/snake_tile.png');
 	game.load.image('snakeHead', 'assets/snake_head.png');
 	game.load.image('snakeBody', 'assets/snake_body.png');
 	game.load.image('snakeSplash', 'assets/snake_splash.png');
 	game.load.image('snakeFood', 'assets/snake_food.png');
 	game.load.spritesheet('snakeGrass', 'assets/snake_grass_tile.png', 50, 50);
 	game.load.audio('snakeIntro', 'sounds/snake_intro.wav');
-	game.load.audio('snake', 'sounds/snake.wav');
+	game.load.audio('snakeSlow', 'sounds/snake_slow.wav');
+	game.load.audio('snakeMedium', 'sounds/snake_medium.wav');
+	game.load.audio('snakeFast', 'sounds/snake_fast.wav');
 	game.load.audio('snakeOutro', 'sounds/snake_outro.wav');
+	game.load.audio('snakeEat', 'sounds/snake_eat.wav');
+	game.load.audio('snakeDie', 'sounds/snake_die.wav');
 	
 	console.log("Load complete");
 }

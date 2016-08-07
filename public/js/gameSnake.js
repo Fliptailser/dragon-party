@@ -23,14 +23,26 @@ var gameSnakeState = {
 		this.labelGroup = game.add.group(); // UI and snake names
 		this.overlayGroup = game.add.group(); // Anything on top, like the loading page or the results page
 		
-		this.snakes = [];
+		this.snakes = null;
 		this.snakeSprites = null; // Each snake gets a list of body sprites that update themselves.
 		this.liveSnakes = null;
 		this.playerSnakeIndex = null;
 		this.foodSprites = {}; // foodSprites[location] -> sprite
 		this.foodLocations = null;
+		this.collisionLocations = null;
 		
-		this.bgm = game.add.audio('snake', 0.80, true);
+		this.speed = null;
+		
+		this.bgms = {
+			6: game.add.audio('snakeSlow', 0.80, true),
+			4: game.add.audio('snakeMedium', 0.80, true),
+			3: game.add.audio('snakeFast', 0.80, true)
+		};
+		
+		
+		
+		this.state = "pre";
+	
 	},
 	
 	create: function(){
@@ -61,22 +73,47 @@ var gameSnakeState = {
 		}, this);
 	},
 	
+	// Update game data. Occurs asynchronously.
+	// Audio and visuals should update in the client-side loop, which is synced.
+	playhead: 0,
+	
+	
 	serverUpdate: function(gameState){
 		if(gameState.type != "lobby"){
+			this.state = gameState.state;
 			this.liveSnakes = gameState.liveSnakes;
 			this.snakes = gameState.snakes;
 			this.foodLocations = gameState.foodLocations;
 			this.playerSnakeIndex = gameState.playerSnakeIndex;
-			this.spriteUpdates();
+			this.collisionLocations = gameState.collisionLocations;
+			this.speed = gameState.speed;
 			
-			if(gameState.state == "running" && !this.bgm.isPlaying){
-				this.bgm.play('', 0, 1, true);
+			if(this.state == "running"){
+				// Set up the next beat of music to play
+				this.bgms[this.speed].addMarker('' + this.playhead, this.playhead, this.speed / 12);
+				this.bgms[this.speed].play('' + this.playhead);
+				this.playhead += this.speed / 12;
+				if(this.playhead >= this.bgms[this.speed].totalDuration){
+					this.playhead = 0;
+					// Switch the BGM.
+				}
+				
+				this.soundEffects(gameState.justAte, gameState.justDied);
 			}
+			
+			this.spriteUpdates();
 		}
 	},
 	
+	soundEffects: function(justAte, justDied){
+		if(justAte)
+			game.sound.play('snakeEat');
+		if(justDied)
+			game.sound.play('snakeDie');
+	},
+	
 	spriteUpdates: function(){
-		// The first time. Here, this.snakes has definitely been set.
+		
 		if(!this.snakeSprites){
 			this.snakeSprites = [];
 			for(var i = 0; i < this.snakes.length; i++){
@@ -91,8 +128,12 @@ var gameSnakeState = {
 		}
 		
 		// TODO:
+		// Let snake collision checking happen after snake hitboxes update
 		// Put highlight squares behind each snake sprite (color determined by snake's index)
-		
+		// Better snake sprites (code for the body segments to tell which sprite to use, straight or corner, and which rotation)
+		// Still gotta fix the 180 suicide bug (snakes store last dir, then server != rule uses last dir, not current dir)
+		// Bug: Player list not clearing
+		// Bug: Food bug that is weird
 		
 		// For each snake:
 		for(var i = 0; i < this.snakes.length; i++){
@@ -166,12 +207,19 @@ var gameSnakeState = {
 		}
 	},
 	
+	
 	update: function(){
+		
+	
+		
 		
 	},
 	
 	gameEnd: function(data){
-		this.bgm.stop();
+		for(var speed in this.bgms){
+			this.bgms[speed].stop();
+		}
+		
 		game.time.events.add(Phaser.Timer.SECOND * 1, function(){
 			game.sound.play('snakeOutro', 0.60);
 			
@@ -238,19 +286,25 @@ var gameSnakeState = {
 			}
 			
 			// Do trigger actions based on the input
-			// switch(keyCode){
-				// case "KeyD":
-					// this.snakes[playerSnakeIndex].dir = 0;
-					// break;
-				// case "KeyA":
-					// this.snakes[playerSnakeIndex].dir = 2;
-					// break;
-				// case "KeyS":
-					// this.snakes[playerSnakeIndex].dir = 1;
-					// break;
-				// case "KeyW":
-					// this.snakes[playerSnakeIndex].dir = 3;
-					// break;
+			// if(this.state == "running"){
+				// switch(keyEvent.code){
+					// case "KeyD":
+						// if(this.snakes[this.playerSnakeIndex].dir != 2)
+							// this.snakes[this.playerSnakeIndex].dir = 0;
+						// break;
+					// case "KeyA":
+						// if(this.snakes[this.playerSnakeIndex].dir != 0)
+							// this.snakes[this.playerSnakeIndex].dir = 2;
+						// break;
+					// case "KeyS":
+						// if(this.snakes[this.playerSnakeIndex].dir != 3)
+							// this.snakes[this.playerSnakeIndex].dir = 1;
+						// break;
+					// case "KeyW":
+						// if(this.snakes[this.playerSnakeIndex].dir != 1)
+							// this.snakes[this.playerSnakeIndex].dir = 3;
+						// break;
+				// }
 			// }
 		}
 	},
