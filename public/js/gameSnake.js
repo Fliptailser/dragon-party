@@ -116,7 +116,7 @@ var gameSnakeState = {
 			this.snakeSprites = [];
 			for(var i = 0; i < this.snakes.length; i++){
 				var snek = this.snakes[i];
-				var headSprite = game.add.sprite(gridXtoPixels(snek.x) + 25, gridYtoPixels(snek.y) + 25, 'snakeHead', 0, this.snakeGroup);
+				var headSprite = game.add.sprite(gridXtoPixels(snek.x) + 25, gridYtoPixels(snek.y) + 25, 'snakeBodyHead', 0, this.snakeGroup);
 				var nameSprite = game.add.text(gridXtoPixels(snek.x) + 25, gridYtoPixels(snek.y), snek.name, { font: '25px Bubblegum Sans', fill: '#ddddff'}, this.labelGroup);
 				headSprite.anchor.setTo(0.5,0.5);
 				nameSprite.anchor.setTo(0.5,0.5);
@@ -135,6 +135,7 @@ var gameSnakeState = {
 		// Bug: Food bug that is weird
 		// Delay between last death and end of game sequence
 		// Warning texts when the client can tell that a speedup is coming
+		// Snake sprites: Use loadTexture(key, frame, stopAnimation)
 		
 		// For each snake:
 		for(var i = 0; i < this.snakes.length; i++){
@@ -149,18 +150,105 @@ var gameSnakeState = {
 			sprites.name.y = gridYtoPixels(snek.y);
 			
 			sprites.head.angle = 90 * snek.dir;
-			// Move the body sprites to the locations specified in the snake's tail list
 			
+			// Move the body sprites to the locations specified in the snake's tail list
 			// If the list of sprites is too short, add a new sprite to the end of it.
 			for(var s = 0; s < snek.tail.length; s++){
 				var tailPosition = snek.tail[s];
 				
 				if(s >= sprites.tail.length){
-					sprites.tail.push(game.add.sprite(gridXtoPixels(tailPosition % this.boardWidth), gridYtoPixels(Math.floor(tailPosition / this.boardWidth)), 'snakeBody', 0, this.snakeGroup));
+					var newTailSprite = game.add.sprite(gridXtoPixels(tailPosition % this.boardWidth) + 25, gridYtoPixels(Math.floor(tailPosition / this.boardWidth)) + 25, 'snakeBodyStraight', 0, this.snakeGroup);
+					newTailSprite.anchor.setTo(0.5,0.5);
+					sprites.tail.push(newTailSprite);
 				}else{
 					var tailSprite = sprites.tail[s];
-					tailSprite.x = gridXtoPixels(tailPosition % this.boardWidth);
-					tailSprite.y = gridYtoPixels(Math.floor(tailPosition / this.boardWidth));
+					tailSprite.x = gridXtoPixels(tailPosition % this.boardWidth) + 25;
+					tailSprite.y = gridYtoPixels(Math.floor(tailPosition / this.boardWidth)) + 25;
+				}
+			}
+			
+			// Now set the shape and angle of the snake body sprites based on adjacent body parts
+			// This could be done during the above loop but that would make it unseemly...
+			for(var s = snek.tail.length - 1; s > 0; s--){
+				var segmentX = snek.tail[s] % this.boardWidth;
+				var segmentY = Math.floor(snek.tail[s] / this.boardWidth);
+				
+				var prevX;
+				var prevY;
+				if(s == snek.tail.length - 1){
+					prevX = snek.x;
+					prevY = snek.y;
+				}else{
+					prevX = snek.tail[s + 1] % this.boardWidth;
+					prevY = Math.floor(snek.tail[s + 1] / this.boardWidth);
+				}
+				
+				var nextX = snek.tail[s - 1] % this.boardWidth;
+				var nextY = Math.floor(snek.tail[s - 1] / this.boardWidth);
+				
+				
+				// Using all these coordinates, determine if the current segment should be straight or a turn. And determine which angle.
+				// First identify where the previous and next segments are relative to the current one: position 0, 1, 2, or 3.
+				var prevPos = this.getAdjacentGridPosition(segmentX, segmentY, prevX, prevY);
+				var nextPos = this.getAdjacentGridPosition(segmentX, segmentY, nextX, nextY);
+				
+				var tailSprite = sprites.tail[s];
+				var angle;
+				var texture;
+				switch(Math.min(prevPos, nextPos)){
+					case 0:
+						switch(Math.max(prevPos, nextPos)){
+							case 1:
+								texture = 'snakeBodyTurn';
+								angle = 0;
+								break;
+							case 2:
+								texture = 'snakeBodyStraight';
+								angle = 0;
+								break;
+							case 3:
+								texture = 'snakeBodyTurn';
+								angle = 270;
+								break;
+							default:
+								console.log("Error with adj. tail positions " + prevPos + " and " + nextPos);
+						}
+						break;
+					case 1:
+						switch(Math.max(prevPos, nextPos)){
+							case 2:
+								texture = 'snakeBodyTurn';
+								angle = 90;
+								break;
+							case 3:
+								texture = 'snakeBodyStraight';
+								angle = 90;
+								break;
+							default:
+								console.log("Error with adj. tail positions " + prevPos + " and " + nextPos);
+						}
+						break;	
+					case 2:
+						switch(Math.max(prevPos, nextPos)){
+							case 3:
+								texture = 'snakeBodyTurn';
+								angle = 180;
+								break;
+							default:
+								console.log("Error with adj. tail positions " + prevPos + " and " + nextPos);
+						}
+						break;	
+					default:
+						console.log("Error with adj. tail positions " + prevPos + " and " + nextPos);
+					
+				}
+				tailSprite.loadTexture(texture, 0);
+				tailSprite.angle = angle;
+				
+				if(s == 1){
+					// rotate the last part of the tail, which is always the tail sprite.
+					sprites.tail[0].loadTexture('snakeBodyTail', 0);
+					sprites.tail[0].angle = 180 + 90*nextPos;
 				}
 			}
 			
@@ -185,7 +273,6 @@ var gameSnakeState = {
 			}
 		}
 		
-		
 		// Go through foodSprites and check that each one maps to a foodLocation. Delete the foodSprites that don't.
 		for(var location in this.foodSprites){
 			if(this.foodLocations.indexOf(location) == -1){
@@ -208,6 +295,24 @@ var gameSnakeState = {
 		}
 	},
 	
+	getAdjacentGridPosition: function(thisX, thisY, adjX, adjY){
+		diffX = adjX - thisX;
+		if(diffX == 1){
+			return 0;
+		}else if(diffX == -1){
+			return 2;
+		}else{
+			diffY = adjY - thisY;
+			if(diffY == 1){
+				return 1;
+			}else if(diffY == -1){
+				return 3;
+			}else{
+				console.log("Error comparing (" + thisX + ", " + thisY + ") and (" + adjX + ", " + adjY + ")");
+				return -1;
+			}
+		}
+	},
 	
 	update: function(){
 		

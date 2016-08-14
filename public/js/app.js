@@ -46,8 +46,10 @@ function preload() {
 	game.load.image('sky', 'assets/sky.png');
 	game.load.image('cloud', 'assets/cloud.png');
 	
-	game.load.image('snakeHead', 'assets/snake_head.png');
-	game.load.image('snakeBody', 'assets/snake_body.png');
+	game.load.image('snakeBodyHead', 'assets/snake_body_head.png');
+	game.load.image('snakeBodyStraight', 'assets/snake_body_straight.png');
+	game.load.image('snakeBodyTurn', 'assets/snake_body_turn.png');
+	game.load.image('snakeBodyTail', 'assets/snake_body_tail.png');
 	game.load.image('snakeSplash', 'assets/snake_splash.png');
 	game.load.image('snakeFood', 'assets/snake_food.png');
 	game.load.spritesheet('snakeGrass', 'assets/snake_grass_tile.png', 50, 50);
